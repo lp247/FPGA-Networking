@@ -389,7 +389,7 @@ void handle_preamble(ap_uint<5> &cnt,
                      read_state_type &read_state) {
 #pragma HLS INLINE
 
-  if (cnt < 31 && rxd == 2) {
+  if (cnt < 31 && rxd == 1) {
     cnt++;
   } else {
     if (cnt == 31 && rxd == 3) {

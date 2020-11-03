@@ -403,9 +403,9 @@ public:
   axis_word get_next_word() {
 #pragma HLS INLINE
     if (word_cnt == 7) {
-      return counted(0xEA, word_cnt, true);
+      return counted(0xD5, word_cnt, true);
     }
-    return counted(0xAA, word_cnt);
+    return counted(0x55, word_cnt);
   }
   void reset() { word_cnt = 0; }
 
