@@ -43,6 +43,8 @@ void Checksum::add(const ap_uint<8> &next_byte, const bool &is_high) {
 }
 
 void Checksum::ensure() {
+#pragma HLS INLINE
+
   if (!this->value_ready) {
     value = accumulator(26, 16) + accumulator(16, 0);
     value.b_not();
@@ -51,6 +53,8 @@ void Checksum::ensure() {
 }
 
 ap_uint<16> Checksum::operator()(int high, int low) {
+#pragma HLS INLINE
+
   this->ensure();
   return this->value(high, low);
 }

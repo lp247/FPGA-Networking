@@ -148,7 +148,7 @@ def invert_bits(word: int, wordsize: int = None) -> int:
 
 
 def hex_string_to_int_list(hex: str) -> List[int]:
-    return list(bytes.fromhex(hex))
+    return [x for x in bytes.fromhex(hex)]
 
 
 def int_to_bool_list(num: int, num_digits: int) -> List[bool]:
@@ -169,8 +169,13 @@ def inv_crc32_decorator(data: List[int], func: Callable[[List[int]], int]) -> in
 
 
 def rev_crc32_decorator(data: List[int], func: Callable[[List[int]], int]) -> int:
-    mod_data: List[int] = list(map(lambda x: rev_word_bits(x, 8), data))
+    mod_data: List[int] = [rev_word_bits(x, 8) for x in data]
     crc = rev_word_bits(func(mod_data), 32)
+    return crc
+
+
+def bytewise_bit_rev_crc32_decorator(data: List[int], func: Callable[[List[int]], int]) -> int:
+    crc = rev_word_bytes(func(data), 32)
     return crc
 
 
@@ -197,6 +202,10 @@ def calc_inv_serial_crc32(data: List[int]) -> int:
 
 def calc_bit_rev_inv_serial_crc32(data: List[int]) -> int:
     return rev_crc32_decorator(data, calc_inv_serial_crc32)
+
+
+def calc_bytewise_bit_rev_inv_serial_crc32(data: List[int]) -> int:
+    return bytewise_bit_rev_crc32_decorator(data, calc_bit_rev_inv_serial_crc32)
 
 
 # PARALLEL CRC32
@@ -270,10 +279,18 @@ def calc_bit_rev_inv_parallel_crc32(data: List[int]) -> int:
     return rev_crc32_decorator(data, calc_inv_parallel_crc32)
 
 
+def calc_bytewise_bit_rev_inv_parallel_crc32(data: List[int]) -> int:
+    return bytewise_bit_rev_crc32_decorator(data, calc_bit_rev_inv_parallel_crc32)
+
+
 # ZLIB CRC32
 
 def calc_bit_rev_inv_zlib_crc32(data: List[int]) -> int:
     return zlib.crc32(bytes(data)) & 0xFFFFFFFF
+
+
+def calc_bytewise_bit_rev_inv_zlib_crc32(data: List[int]) -> int:
+    return bytewise_bit_rev_crc32_decorator(data, calc_bit_rev_inv_zlib_crc32)
 
 
 def calc_inv_zlib_crc32(data: List[int]) -> int:
@@ -284,30 +301,37 @@ def calc_vanilla_zlib_crc32(data: List[int]) -> int:
     return inv_crc32_decorator(data, calc_inv_zlib_crc32)
 
 
-# msg: str = 'bb bb bb bb bb bb 99 99 99 99 99 99 08 00 45 00 00 2e 00 00 40 00 80 11 94 59 11 11 11 11 22 22 22 22 de 60 00 35 00 12 10 ce aa 00 00 00 00 00 00 00 00 00'
-# lst: List[int] = hex_string_to_int_list(msg)
+lst: List[int] = hex_string_to_int_list('')
 
 # # CRC32 without inversion of input and output bits. Pure polynomial division.
-# print("\nVANILLA CRC32")
+# print("\nTYPE 1: VANILLA CRC32")
 # print_hex_dec(calc_vanilla_zlib_crc32(lst))
 # print_hex_dec(calc_vanilla_serial_crc32(lst))
 # print_hex_dec(calc_vanilla_parallel_crc32(lst))
 
 # # CRC32 with first four input bytes and output inverted.
-# print("\n[USE THIS] INVERTED INPUT & OUTPUT")
+# print("\nTYPE 2: TYPE 1 + INPUT WITH FIRST 4 BYTES INVERTED & OUTPUT INVERTED")
+# print("Use this for appending to message")
 # print_hex_dec(calc_inv_zlib_crc32(lst))
 # print_hex_dec(calc_inv_serial_crc32(lst))
 # print_hex_dec(calc_inv_parallel_crc32(lst))
 
 # # CRC32 with inversion from before and bytewise bit-reverse inputs and full
 # # bit-reverse output.
-# print("\nINVERTED + REVERSE BYTEWISE INPUT & REVERSE OUTPUT")
+# print("\nTYPE 3: TYPE 2 + INPUT BYTEWISE REVERSED & OUTPUT REVERSED")
 # print_hex_dec(calc_bit_rev_inv_zlib_crc32(lst))
 # print_hex_dec(calc_bit_rev_inv_serial_crc32(lst))
 # print_hex_dec(calc_bit_rev_inv_parallel_crc32(lst))
 
+# print("\nTYPE 4: TYPE 3 + OUTPUT BYTEWISE REVERSED")
+# print("OUTPUT BYTES REVERSED COMPARED TO TYPE 2")
+# print("This must be finally transmitted")
+# print_hex_dec(calc_bytewise_bit_rev_inv_zlib_crc32(lst))
+# print_hex_dec(calc_bytewise_bit_rev_inv_serial_crc32(lst))
+# print_hex_dec(calc_bytewise_bit_rev_inv_parallel_crc32(lst))
+
 # # Show every step in crc32 calculation
-msg: str = 'bb bb bb bb bb bb 99 99 99 99 99 99 08 00 45 00 00 2e 00 00 40 00 80 11 94 59 11 11 11 11 22 22 22 22 de 60 00 35 00 12 10 ce aa 00 00 00 00 00 00 00 00 00'
-msgs: List[str] = [msg[0:i + 5] for i in range(0, len(msg), 3)]
-for i, m in enumerate(msgs):
-    print_hex_dec(calc_inv_zlib_crc32(hex_string_to_int_list(m)))
+# all_sub_sentences: List[List[int]] = [lst[0:i+1] for i in range(0, len(lst))]
+# for i, sub_sentence in enumerate(all_sub_sentences):
+#     checksum = calc_bytewise_bit_rev_inv_serial_crc32(sub_sentence)
+#     print('0x{:02x}: 0x{:08x}'.format(lst[i], checksum))
