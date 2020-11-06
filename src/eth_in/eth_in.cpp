@@ -339,19 +339,19 @@ void process_next_data_word(const Addresses &loc,
   if (shift_cnt < 4) {
     shift_cnt++;
     crc_buf.shift(word.data);
+    fcs.reset();
   } else {
     shifted_word.data = crc_buf.shift(word.data, 3);
     shifted_word.last = word.last;
     process_next_eth_pkt_word(loc, shifted_word, buffer, num_valid_bytes);
-  }
-  if (!word.last) {
-    fcs.add(word.data);
-  } else {
-    shift_cnt = 0;
-    if (crc32_preview(word.data, fcs.accu(), 5) != INV_CRC32_RESIDUE) {
-      num_valid_bytes = 0;
+    fcs.add(shifted_word.data);
+    if (word.last) {
+      shift_cnt = 0;
+      if (fcs(31, 24) != crc_buf.read(3) || fcs(23, 16) != crc_buf.read(2) ||
+          fcs(15, 8) != crc_buf.read(1) || fcs(7, 0) != crc_buf.read(0)) {
+        num_valid_bytes = 0;
+      }
     }
-    fcs.reset();
   }
 }
 

@@ -32,16 +32,15 @@
 ap_uint<32> calculate_fcs(std::vector<ap_uint<8> > bytes) {
   ap_uint<33> polynomial = 0x104C11DB7;
   ap_uint<33> crc = 0;
-  std::vector<ap_uint<8> > padded_data(bytes);
-  padded_data.push_back(0);
-  padded_data.push_back(0);
-  padded_data.push_back(0);
-  padded_data.push_back(0);
-  std::vector<ap_uint<8> > inv_data(padded_data);
-  for (int i = 0; i < 4; i++) {
-    inv_data[i] = inv_data[i] ^ 0xFF;
+  std::vector<ap_uint<8> > modified_bytes(bytes);
+  modified_bytes.insert(modified_bytes.end(), {0, 0, 0, 0});
+  for (int i = 0; i < modified_bytes.size(); i++) {
+    modified_bytes[i].reverse();
   }
-  for (auto byte : inv_data) {
+  for (int i = 0; i < 4; i++) {
+    modified_bytes[i].b_not();
+  }
+  for (auto byte : modified_bytes) {
     for (int i = 0; i < 8; i++) {
       crc = crc << 1;
       ap_uint<1> new_bit = (byte >> (7 - i)) & 1;
@@ -51,7 +50,13 @@ ap_uint<32> calculate_fcs(std::vector<ap_uint<8> > bytes) {
       }
     }
   }
-  return crc(31, 0) ^ 0xFFFFFFFF;
+  ap_uint<32> ret;
+  ret(31, 24) = crc(7, 0);
+  ret(23, 16) = crc(15, 8);
+  ret(15, 8) = crc(23, 16);
+  ret(7, 0) = crc(31, 24);
+  ret.reverse();
+  return ret ^ 0xFFFFFFFF;
 }
 
 std::vector<ap_uint<8> >
@@ -76,6 +81,9 @@ ETHPacket::compute_bytes(const Addresses src,
 
   std::vector<ap_uint<8> > packet(header);
   packet.insert(packet.end(), payload.begin(), payload.end());
+  while (packet.size() < 60) {
+    packet.push_back(0);
+  }
 
   ap_uint<32> fcs = calculate_fcs(packet);
 

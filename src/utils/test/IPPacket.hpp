@@ -42,15 +42,17 @@ public:
   IPPacket(const Addresses &src,
            const Addresses &dst,
            const ap_uint<8> &ip_protocol,
-           const std::vector<ap_uint<8> > &payload)
-      : Packet(compute_bytes(src, dst, ip_protocol, payload)) {}
+           const std::vector<ap_uint<8> > &payload,
+           ap_uint<16> id = 0)
+      : Packet(compute_bytes(src, dst, ip_protocol, payload, id)) {}
 
 private:
   static std::vector<ap_uint<8> >
   compute_bytes(const Addresses &src,
                 const Addresses &dst,
                 const ap_uint<8> &ip_protocol,
-                const std::vector<ap_uint<8> > &payload);
+                const std::vector<ap_uint<8> > &payload,
+                ap_uint<16> id);
 };
 
 #endif

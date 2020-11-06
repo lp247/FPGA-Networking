@@ -49,7 +49,7 @@ public:
   }
   void add(const ap_uint<16> &next);
   void add(const ap_uint<8> &next_byte, const bool &is_high);
-  ap_uint<16> get();
+  ap_uint<16> operator()(int high, int low);
 
 private:
   void ensure();

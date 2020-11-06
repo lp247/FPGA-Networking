@@ -83,7 +83,10 @@ ap_uint<32> crc32_preview(const ap_uint<8> &next,
 void CRC32::add(const ap_uint<8> &next) {
 #pragma HLS INLINE off
 
-  this->accumulator = crc32_preview(next, this->accumulator, this->add_cnt);
+  ap_uint<8> rev_next = next;
+  rev_next.reverse();
+  this->accumulator = crc32_preview(rev_next, this->accumulator, this->add_cnt);
+  this->value_ready = false;
   if (this->add_cnt < 4) {
     this->add_cnt++;
   }
@@ -94,9 +97,22 @@ void CRC32::reset() {
   this->add_cnt = 0;
 }
 
-ap_range_ref<32, false> CRC32::operator()(int high, int low) {
+ap_uint<32> CRC32::operator()(int high, int low) {
+#pragma HLS INLINE
+
   if (!this->value_ready) {
-    this->value = this->accumulator;
+    ap_uint<8> nibble_0 = this->accumulator(7, 0);
+    ap_uint<8> nibble_1 = this->accumulator(15, 8);
+    ap_uint<8> nibble_2 = this->accumulator(23, 16);
+    ap_uint<8> nibble_3 = this->accumulator(31, 24);
+    nibble_0.reverse();
+    nibble_1.reverse();
+    nibble_2.reverse();
+    nibble_3.reverse();
+    this->value(31, 24) = nibble_3;
+    this->value(23, 16) = nibble_2;
+    this->value(15, 8) = nibble_1;
+    this->value(7, 0) = nibble_0;
     this->value.b_not();
     this->value_ready = true;
   }

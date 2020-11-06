@@ -33,12 +33,7 @@ std::vector<ap_uint<8> >
 UDPPacket::compute_bytes(const Addresses &src,
                          const Addresses &dst,
                          const std::vector<ap_uint<8> > &payload) {
-  std::vector<ap_uint<8> > min_size_payload = payload;
-  while (min_size_payload.size() < 18) {
-    min_size_payload.push_back(0);
-  }
-
-  ap_uint<16> packet_length = min_size_payload.size() + 8;
+  ap_uint<16> packet_length = payload.size() + 8;
   std::vector<ap_uint<8> > pseudo_header{src.ip_addr(31, 24),
                                          src.ip_addr(23, 16),
                                          src.ip_addr(15, 8),
@@ -62,7 +57,7 @@ UDPPacket::compute_bytes(const Addresses &src,
                                               0};
 
   std::vector<ap_uint<8> > packet(header_no_checksum);
-  packet.insert(packet.end(), min_size_payload.begin(), min_size_payload.end());
+  packet.insert(packet.end(), payload.begin(), payload.end());
 
   std::vector<ap_uint<8> > checksum_target(pseudo_header);
   checksum_target.insert(checksum_target.end(), packet.begin(), packet.end());

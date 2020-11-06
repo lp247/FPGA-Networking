@@ -43,8 +43,10 @@ public:
   IPFrame(const Addresses &src,
           const Addresses &dst,
           const ap_uint<8> &ip_protocol,
-          const std::vector<ap_uint<8> > &payload)
-      : ETHFrame(src, dst, 0x0800, IPPacket(src, dst, ip_protocol, payload)) {}
+          const std::vector<ap_uint<8> > &payload,
+          ap_uint<16> id = 0)
+      : ETHFrame(
+            src, dst, 0x0800, IPPacket(src, dst, ip_protocol, payload, id)) {}
 };
 
 #endif

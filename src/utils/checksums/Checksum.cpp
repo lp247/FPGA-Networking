@@ -50,7 +50,7 @@ void Checksum::ensure() {
   }
 }
 
-ap_uint<16> Checksum::get() {
+ap_uint<16> Checksum::operator()(int high, int low) {
   this->ensure();
-  return this->value;
+  return this->value(high, low);
 }

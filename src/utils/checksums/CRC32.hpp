@@ -37,7 +37,7 @@
 class CRC32 : public IChecksum<32, 32> {
 public:
   CRC32() : IChecksum(), add_cnt(0){};
-  ap_range_ref<32, false> operator()(int high, int low);
+  ap_uint<32> operator()(int high, int low);
   void add(const ap_uint<8> &next);
   void reset();
 

@@ -32,9 +32,33 @@
 #pragma once
 
 #include "../constants.hpp"
+#include <ap_int.h>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <vector>
+
+void handle_group_boundary(std::stringstream &ss, int index, int group_size) {
+  if ((index - group_size + 1) % group_size == 0) {
+    ss << " ";
+  }
+}
+
+template <typename T>
+std::string get_colored_vector_string(const std::vector<T> &v,
+                                      const std::vector<std::string> &colors,
+                                      int group_size) {
+  std::stringstream ss;
+  for (int i = 0; i < v.size(); i++) {
+    std::cout << std::hex;
+    ss << colors[i] << v[i] << FG_WHITE;
+    std::cout << std::dec;
+    handle_group_boundary(ss, i, group_size);
+  }
+  std::string ret = ss.str();
+  ret = std::regex_replace(ret, std::regex("0x"), "");
+  return ret;
+}
 
 class Comparison {
 public:
@@ -60,29 +84,11 @@ private:
   std::string name;
   std::string refs;
   std::string values;
-  static void
-  handle_group_boundary(std::stringstream &ss, int index, int group_size) {
-    if ((index - group_size + 1) % group_size == 0) {
-      ss << " ";
-    }
-  }
-  template <typename T>
-  static std::string
-  get_colored_vector_string(const std::vector<T> &v,
-                            const std::vector<std::string> &colors,
-                            int group_size) {
-    std::stringstream ss;
-    for (int i = 0; i < v.size(); i++) {
-      ss << colors[i] << v[i] << FG_WHITE;
-      handle_group_boundary(ss, i, group_size);
-    }
-    return ss.str();
-  }
   template <typename T>
   static std::string get_refs_string(const std::vector<T> &refs,
                                      int group_size) {
-    return get_colored_vector_string(
-        refs, std::vector<std::string>(refs.size(), FG_WHITE), group_size);
+    std::vector<std::string> colors(refs.size(), FG_WHITE);
+    return get_colored_vector_string(refs, colors, group_size);
   }
   template <typename T>
   static std::string get_values_string(const std::vector<T> &values,
@@ -90,16 +96,19 @@ private:
                                        int group_size) {
     if (values.size() == 0)
       return "";
-    if (refs.size() == 0)
-      return get_colored_vector_string(values, std::vector<std::string>(values.size(), FG_RED), group_size);
+
     std::vector<std::string> colors;
-    for (int i = 0; i < std::max(values.size(), refs.size()); i++) {
-      bool bad_values_index = i > values.size() - 1;
-      bool bad_refs_index = i > refs.size() - 1;
-      if (bad_values_index || bad_refs_index || values[i] != refs[i]) {
-        colors.push_back(FG_RED);
-      } else {
-        colors.push_back(FG_WHITE);
+    if (refs.size() == 0) {
+      colors = std::vector<std::string>(values.size(), FG_RED);
+    } else {
+      for (int i = 0; i < std::max(values.size(), refs.size()); i++) {
+        bool bad_values_index = i > values.size() - 1;
+        bool bad_refs_index = i > refs.size() - 1;
+        if (bad_values_index || bad_refs_index || values[i] != refs[i]) {
+          colors.push_back(FG_RED);
+        } else {
+          colors.push_back(FG_WHITE);
+        }
       }
     }
     return get_colored_vector_string(values, colors, group_size);

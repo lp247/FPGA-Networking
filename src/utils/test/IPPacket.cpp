@@ -33,21 +33,18 @@ std::vector<ap_uint<8> >
 IPPacket::compute_bytes(const Addresses &src,
                         const Addresses &dst,
                         const ap_uint<8> &ip_protocol,
-                        const std::vector<ap_uint<8> > &payload) {
+                        const std::vector<ap_uint<8> > &payload,
+                        ap_uint<16> id) {
   ap_uint<16> packet_length = payload.size() + 20;
-  if (packet_length < 46) {
-    packet_length = 46;
-  }
-  ap_uint<8> version_ihl;
-  version_ihl = 0x45;
+  ap_uint<8> version_ihl = 0x45;
 
   std::vector<ap_uint<8> > header_no_checksum{version_ihl,
                                               0,
                                               packet_length(15, 8),
                                               packet_length(7, 0),
+                                              id(15, 8),
+                                              id(7, 0),
                                               0,
-                                              0,
-                                              0x40,
                                               0,
                                               0x80,
                                               ip_protocol,

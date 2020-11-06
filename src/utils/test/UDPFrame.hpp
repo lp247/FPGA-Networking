@@ -42,8 +42,9 @@ class UDPFrame : public IPFrame {
 public:
   UDPFrame(const Addresses &src,
            const Addresses &dst,
-           const std::vector<ap_uint<8> > &payload)
-      : IPFrame(src, dst, 0x11, UDPPacket(src, dst, payload)) {}
+           const std::vector<ap_uint<8> > &payload,
+           ap_uint<16> id = 0)
+      : IPFrame(src, dst, 0x11, UDPPacket(src, dst, payload), id) {}
 };
 
 #endif

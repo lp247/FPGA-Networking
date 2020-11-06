@@ -111,18 +111,14 @@ private:
 class UDPPacketWordGenerator {
 public:
   UDPPacketWordGenerator()
-      : word_cnt(0), udp_pkt_total_length(0), payloadWordGenerator(18) {}
+      : word_cnt(0), udp_pkt_length(0), payloadWordGenerator(18) {}
   axis_word get_next_word(const Addresses &loc,
                           const Meta &meta,
                           hls::stream<axis_word> &buffer) {
 #pragma HLS INLINE
     switch (word_cnt) {
     case 0:
-      if (meta.payload_length < MIN_UDP_PAYLOAD_BYTE_SIZE) {
-        udp_pkt_total_length = MIN_UDP_PKT_BYTE_SIZE;
-      } else {
-        udp_pkt_total_length = meta.payload_length + UDP_PKT_HEADER_BYTE_SIZE;
-      }
+      udp_pkt_length = meta.payload_length + 8;
       udp_checksum1 = Checksum(loc.ip_addr(31, 16));
       udp_checksum2 = Checksum(meta.dst_ip_addr(31, 16));
       return counted(loc.udp_port(15, 8), word_cnt);
@@ -133,8 +129,8 @@ public:
       return counted(loc.udp_port(7, 0), word_cnt);
       break;
     case 2:
-      udp_checksum1.add(udp_pkt_total_length);
-      udp_checksum2.add(udp_pkt_total_length);
+      udp_checksum1.add(udp_pkt_length);
+      udp_checksum2.add(udp_pkt_length);
       return counted(meta.dst_udp_port(15, 8), word_cnt);
       break;
     case 3:
@@ -145,17 +141,17 @@ public:
     case 4:
       udp_checksum1.add(0x0011);
       udp_checksum2.add(meta.payload_checksum);
-      return counted(udp_pkt_total_length(10, 8), word_cnt);
+      return counted(udp_pkt_length(10, 8), word_cnt);
       break;
     case 5:
       udp_checksum1.add(udp_checksum2.accu());
-      return counted(udp_pkt_total_length(7, 0), word_cnt);
+      return counted(udp_pkt_length(7, 0), word_cnt);
       break;
     case 6:
-      return counted(udp_checksum1.get()(15, 8), word_cnt);
+      return counted(udp_checksum1(15, 8), word_cnt);
       break;
     case 7:
-      return counted(udp_checksum1.get()(7, 0), word_cnt);
+      return counted(udp_checksum1(7, 0), word_cnt);
       break;
     default:
       return payloadWordGenerator.get_next_word(buffer);
@@ -171,7 +167,7 @@ public:
 
 private:
   ap_uint<5> word_cnt;
-  ap_uint<16> udp_pkt_total_length;
+  ap_uint<16> udp_pkt_length;
   Checksum udp_checksum1;
   Checksum udp_checksum2;
   PayloadWordGenerator payloadWordGenerator;
@@ -180,7 +176,7 @@ private:
 class IPPacketWordGenerator {
 public:
   IPPacketWordGenerator()
-      : word_cnt(0), ip_pkt_protocol(0), ip_pkt_total_length(0),
+      : word_cnt(0), ip_pkt_protocol(0), ip_pkt_length(0),
         ip_hop_count_and_protocol(0) {}
   axis_word get_next_word(const Addresses &loc,
                           const Meta &meta,
@@ -190,12 +186,7 @@ public:
     case 0:
       ip_checksum.add(0x45, true);
       ip_pkt_protocol = UDP;
-      if (meta.payload_length < MIN_UDP_PAYLOAD_BYTE_SIZE) {
-        ip_pkt_total_length = MIN_IP_PKT_BYTE_SIZE;
-      } else {
-        ip_pkt_total_length = meta.payload_length + IP_PKT_HEADER_BYTE_SIZE +
-                              UDP_PKT_HEADER_BYTE_SIZE;
-      }
+      ip_pkt_length = meta.payload_length + 28;
       ip_hop_count_and_protocol = (IP_HOP_COUNT << 8) + ip_pkt_protocol;
       return counted(0x45, word_cnt);
       break;
@@ -205,11 +196,11 @@ public:
       break;
     case 2: // Packet total length high byte
       ip_checksum.add(loc.ip_addr(15, 0));
-      return counted(ip_pkt_total_length(10, 8), word_cnt);
+      return counted(ip_pkt_length(10, 8), word_cnt);
       break;
     case 3: // Packet total length low byte
-      ip_checksum.add(ip_pkt_total_length);
-      return counted(ip_pkt_total_length(7, 0), word_cnt);
+      ip_checksum.add(ip_pkt_length);
+      return counted(ip_pkt_length(7, 0), word_cnt);
       break;
     case 4: // ID high byte
       ip_checksum.add(meta.dst_ip_addr(31, 16));
@@ -220,10 +211,9 @@ public:
       return counted(0, word_cnt);
       break;
     case 6: // Flags + fragment offset highest 3 bits
-      return counted(0x40, word_cnt);
+      return counted(0, word_cnt);
       break;
     case 7: // Fragment offset low byte
-      ip_checksum.add(0x4000);
       return counted(0, word_cnt);
       break;
     case 8: // Hop count
@@ -234,10 +224,10 @@ public:
       return counted(ip_pkt_protocol, word_cnt);
       break;
     case 10: // IP header checksum high byte
-      return counted(ip_checksum.get()(15, 8), word_cnt);
+      return counted(ip_checksum(15, 8), word_cnt);
       break;
     case 11: // IP header checksum low byte
-      return counted(ip_checksum.get()(7, 0), word_cnt);
+      return counted(ip_checksum(7, 0), word_cnt);
       break;
     case 12:
       return counted(loc.ip_addr(31, 24), word_cnt);
@@ -285,7 +275,7 @@ private:
   ap_uint<32> word_cnt;
   Checksum ip_checksum;
   ap_uint<8> ip_pkt_protocol;
-  ap_uint<11> ip_pkt_total_length;
+  ap_uint<11> ip_pkt_length;
   ap_uint<16> ip_hop_count_and_protocol;
   UDPPacketWordGenerator udpPacketWordGenerator;
 };
