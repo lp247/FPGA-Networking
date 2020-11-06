@@ -1,5 +1,7 @@
 **/proj_*/
 
 *.log
+*.csv
+*.tsm
 .vscode
 ip
