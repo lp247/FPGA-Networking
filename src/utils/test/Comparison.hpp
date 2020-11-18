@@ -51,7 +51,7 @@ std::string get_colored_vector_string(const std::vector<T> &v,
   std::stringstream ss;
   for (int i = 0; i < v.size(); i++) {
     std::cout << std::hex;
-    ss << colors[i] << v[i] << FG_WHITE;
+    ss << colors[i] << std::hex << v[i] << std::dec << FG_WHITE;
     std::cout << std::dec;
     handle_group_boundary(ss, i, group_size);
   }

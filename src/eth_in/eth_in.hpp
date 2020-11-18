@@ -40,10 +40,48 @@
 #include <ap_shift_reg.h>
 #include <hls_stream.h>
 
+template <typename T> struct Optional {
+  T value;
+  ap_uint<1> is_valid;
+};
+
+const ap_uint<8> ERROR_RXERR = 1;
+const ap_uint<8> ERROR_BAD_FCS = 2;
+const ap_uint<8> ERROR_BAD_MAC_ADDRESS = 3;
+const ap_uint<8> ERROR_UNKNOWN_ETH_PROTOCOL = 4;
+const ap_uint<8> ERROR_BAD_IP_ADDRESS = 5;
+const ap_uint<8> ERROR_UNKNOWN_IP_PROTOCOL = 6;
+const ap_uint<8> ERROR_BAD_UDP_PORT = 7;
+const ap_uint<8> ERROR_BAD_UDP_CHECKSUM = 8;
+
+const ap_uint<8> STATUS_IDLE = 0;
+const ap_uint<8> STATUS_CHECKING_PREAMBLE = 1;
+
+const Optional<axis_word> NOTHING = {{0, false, 0}, false};
+
+struct Status {
+public:
+  Status() : error(0), state(0) {}
+  ap_uint<1> has_error() { return this->error > 0; }
+  ap_uint<8> get_error() { return this->error; }
+  void register_error(const ap_uint<8> &error) {
+    if (this->error == 0) {
+      this->error = error;
+    }
+  }
+  ap_uint<8> get_state() { return this->state; }
+  void set_state(const ap_uint<8> &state) { this->state = state; }
+
+private:
+  ap_uint<8> error;
+  ap_uint<8> state;
+};
+
 void eth_in(const ap_uint<2> &rxd,
             const ap_uint<1> &rxerr,
             const ap_uint<1> &crsdv,
             hls::stream<axis_word> &data_out,
-            const Addresses &loc);
+            const Addresses &loc,
+            Status &status);
 
 #endif

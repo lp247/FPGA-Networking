@@ -34,12 +34,18 @@ void Checksum::add(const ap_uint<16> &next) {
   this->accumulator += next;
 }
 
-void Checksum::add(const ap_uint<8> &next_byte, const bool &is_high) {
-  ap_uint<16> full_next = next_byte;
-  if (is_high) {
+void Checksum::add(const Checksum &other) {
+  this->value_ready = false;
+  this->accumulator += other.accumulator;
+}
+
+void Checksum::add_half(const ap_uint<8> &next) {
+  ap_uint<16> full_next = next;
+  if (this->next_byte_is_upper_half) {
     full_next <<= 8;
   }
   this->add(full_next);
+  this->next_byte_is_upper_half = !this->next_byte_is_upper_half;
 }
 
 void Checksum::ensure() {

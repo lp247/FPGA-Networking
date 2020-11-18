@@ -78,12 +78,19 @@ int main() {
 
   const Addresses real_loc{0xaaaaaaaaaaaa, 0xa9fecd01, 0x0035};
   const Addresses real_src{0xd89ef3fbcf15, 0xa9fecda9, 0xe5b8};
-  Frame real({0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xd8, 0x9e, 0xf3, 0xfb, 0xcf,
-              0x15, 0x08, 0x00, 0x45, 0x00, 0x00, 0x1d, 0x48, 0xeb, 0x00, 0x00,
-              0x80, 0x11, 0x03, 0x3d, 0xa9, 0xfe, 0xcd, 0xa9, 0xa9, 0xfe, 0xcd,
-              0x01, 0xe5, 0xb8, 0x00, 0x35, 0x00, 0x09, 0x81, 0x45, 0xaa, 0x00,
-              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-              0x00, 0x00, 0x00, 0x00, 0x00, 0x26, 0x1e, 0x84, 0xd5});
+  std::vector<ap_uint<2> > real(
+      {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+       2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 1, 3, 2, 3, 1, 2, 3, 0, 3, 3, 3, 2, 3, 3,
+       3, 3, 0, 3, 1, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0,
+       0, 0, 0, 0, 1, 3, 1, 0, 0, 2, 0, 1, 3, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 2, 1, 0, 1, 0, 3, 0, 0, 0, 1, 3, 3, 0, 1, 2, 2, 2, 2, 3, 3, 3,
+       1, 3, 0, 3, 1, 2, 2, 2, 1, 2, 2, 2, 2, 3, 3, 3, 1, 3, 0, 3, 1, 0, 0, 0,
+       1, 1, 2, 3, 0, 2, 3, 2, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 0, 0, 1, 2, 0, 0,
+       1, 0, 0, 2, 1, 1, 0, 1, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 0, 2, 3, 1, 0, 0, 1, 0, 2, 1, 1, 1, 3});
   tests.push_back({"Real world example packet",
                    real,
                    {},
@@ -138,6 +145,7 @@ int main() {
 
   const Addresses dst_wrong_udp = {0xbbbbbbbbbbbb, 0x22222222, 0x0040};
   std::vector<ap_uint<2> > rxd_wrong_udp = UDPFrame(src, dst_wrong_udp, {0xaa});
+  rxd_wrong_udp.insert(rxd_wrong_udp.begin(), {0, 0, 0, 0});
   tests.push_back({"Wrong destination udp port",
                    rxd_wrong_udp,
                    {},
@@ -147,12 +155,14 @@ int main() {
 
   for (int i = 0; i < tests.size(); i++) {
     for (int j = 0; j < NUM_CYCLES; j++) {
+      Status status;
       tests[i].feed_inputs(j);
       eth_in(tests[i].rxd_feed.value,
              tests[i].rxerr_feed.value,
              tests[i].crsdv_feed.value,
              tests[i].data_out_store.stream,
-             tests[i].loc);
+             tests[i].loc,
+             status);
       tests[i].store_outputs(j);
     }
     errors += tests[i].get_result();
