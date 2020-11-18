@@ -62,14 +62,14 @@ const Optional<axis_word> NOTHING = {{0, false, 0}, false};
 struct Status {
 public:
   Status() : error(0), state(0) {}
-  ap_uint<1> has_error() { return this->error > 0; }
-  ap_uint<8> get_error() { return this->error; }
+  ap_uint<1> has_error() const { return this->error > 0; }
+  ap_uint<8> get_error() const { return this->error; }
   void register_error(const ap_uint<8> &error) {
     if (this->error == 0) {
       this->error = error;
     }
   }
-  ap_uint<8> get_state() { return this->state; }
+  ap_uint<8> get_state() const { return this->state; }
   void set_state(const ap_uint<8> &state) { this->state = state; }
 
 private:
