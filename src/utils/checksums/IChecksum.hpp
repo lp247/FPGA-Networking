@@ -35,20 +35,13 @@
 
 template <int V, int A> class IChecksum {
 public:
-  IChecksum() : value(0), accumulator(0), value_ready(false) {}
-  IChecksum(const ap_uint<A> &accu)
-      : value(0), accumulator(accu), value_ready(false) {}
-  void reset() {
-    accumulator = 0;
-    value = 0;
-    value_ready = false;
-  }
-  ap_uint<A> accu() { return this->accumulator; }
+  IChecksum() : accumulator(0) {}
+  IChecksum(const ap_uint<A> &accu) : accumulator(accu) {}
+  void reset() { this->accumulator = 0; }
+  ap_uint<A> get_accumulator() { return this->accumulator; }
 
 protected:
   ap_uint<A> accumulator;
-  ap_uint<V> value;
-  bool value_ready;
 };
 
 #endif

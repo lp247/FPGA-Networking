@@ -29,22 +29,36 @@
 
 #include "calculate_checksum.hpp"
 
-ap_uint<16> calculate_checksum(std::vector<ap_uint<8> > bytes) {
-  std::vector<ap_uint<8> > even_num_bytes(bytes);
-  if (even_num_bytes.size() % 2 != 0) {
-    even_num_bytes.push_back(0);
+void extended_to_even_byte_num(std::vector<ap_uint<8> > &bytes) {
+  if (bytes.size() % 2 != 0) {
+    bytes.push_back(0);
   }
+}
+
+std::vector<ap_uint<16> > group_to_byte_pairs(std::vector<ap_uint<8> > &bytes) {
   std::vector<ap_uint<16> > byte_pairs;
-  for (int i = 0; i < even_num_bytes.size() / 2; i++) {
+  for (int i = 0; i < bytes.size() / 2; i++) {
     ap_uint<16> byte_pair;
-    byte_pair(15, 8) = even_num_bytes[2 * i];
-    byte_pair(7, 0) = even_num_bytes[2 * i + 1];
+    byte_pair(15, 8) = bytes[2 * i];
+    byte_pair(7, 0) = bytes[2 * i + 1];
     byte_pairs.push_back(byte_pair);
   }
-  ap_uint<32> checksum = 0;
+  return byte_pairs;
+}
+
+ap_uint<32> sum(std::vector<ap_uint<16> > &byte_pairs) {
+  ap_uint<32> ret = 0;
   for (auto v : byte_pairs) {
-    checksum += v;
+    ret += v;
   }
-  ap_uint<16> result = checksum(31, 16) + checksum(15, 0);
-  return result ^ 0xFFFF;
+  return ret;
+}
+
+ap_uint<16> calculate_checksum(std::vector<ap_uint<8> > bytes) {
+  extended_to_even_byte_num(bytes);
+  std::vector<ap_uint<16> > byte_pairs = group_to_byte_pairs(bytes);
+  ap_uint<32> summed = sum(byte_pairs);
+  ap_uint<16> folded = summed(31, 16) + summed(15, 0);
+  ap_uint<16> inverted = folded ^ 0xFFFF;
+  return inverted;
 }

@@ -27,42 +27,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
-#pragma once
+#include "FCSValidator.hpp"
 
-#include "stdint.h"
-#include <string>
-#include "Optional.hpp"
+Optional<axis_word> FCSValidator::validate(const Optional<axis_word> &word,
+                                           Status &status) {
+#pragma HLS INLINE
 
-const ap_uint<8> IPG = 96;
+  if (!word.is_valid) {
+    return NOTHING;
+  }
 
-// Ethernet protocols
-const uint16_t ARP = 0x0806;
-const uint16_t IPv4 = 0x0800;
-const uint16_t IPv6 = 0x86DD;
+  this->fcs.add(word.value.data);
+  ap_uint<8> next_data = this->crc_buf.shift(word.value.data);
 
-// IPv4 protocols
-const uint8_t ICMP = 0x1;
-const uint8_t TCP = 0x6;
-const uint8_t UDP = 0x11;
+  if (this->shift_cnt < 4) {
+    this->shift_cnt++;
+    return NOTHING;
+  }
 
-// IPv4 settings
-const ap_uint<8> IP_IHL = 0x5;
-const ap_uint<8> IP_VERSION = 0x4;
-const ap_uint<8> IP_HOP_COUNT = 0x80;
+  if (word.value.last &&
+      this->fcs.get_accumulator() != CRC32_RESIDUE_INV_BREV) {
+    status.set_bad_fcs();
+  }
+  
+  return {{next_data, word.value.last, 0}, true};
+}
 
-const ap_uint<32> CRC32_RESIDUE = 0x1CDF4421;
-const ap_uint<32> CRC32_RESIDUE_INV_BREV = 0xC704DD7B;
+void FCSValidator::reset() {
+  this->shift_cnt = 0;
+  this->fcs.reset();
+}
 
-// Console text color codes
-const std::string FG_RED = "\033[31m";
-const std::string FG_WHITE = "\033[37m";
-const std::string FG_GREEN = "\033[32m";
-const std::string BG_GRAY = "\033[48;5;8m";
-const std::string BG_BLACK = "\033[48;5;0m";
-const std::string COLOR_RESET = "\033[0m";
-
-const Optional<axis_word> NOTHING = {{0, false, 0}, false};
-
-#endif
+ap_uint<1> FCSValidator::is_good() {
+  return this->fcs.get_accumulator() == CRC32_RESIDUE_INV_BREV;
+}

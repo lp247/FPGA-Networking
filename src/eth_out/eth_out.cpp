@@ -48,10 +48,10 @@ void calculate_length_checksum(hls::stream<axis_word> &data_in,
   if (!data_in.empty()) {
     axis_word tmp = data_in.read();
     buffer.write(tmp);
-    checksum.add(tmp.data, byte_cnt % 2 == 0);
+    checksum.add_half(tmp.data);
     byte_cnt++;
     if (tmp.last) {
-      meta_buffer.write({checksum.accu(),
+      meta_buffer.write({checksum.get_accumulator(),
                          byte_cnt,
                          tmp.user(47, 0),
                          tmp.user(79, 48),
@@ -69,19 +69,18 @@ axis_word counted(const ap_uint<8> &data, ap_uint<I> &cnt, bool last = false) {
   return {data, last, 0};
 }
 
-class PayloadWordGenerator {
+template <int MIN_PL_SIZE> class PayloadWordGenerator {
 public:
-  PayloadWordGenerator(const ap_uint<6> &min_payload_size)
-      : word_cnt(0), min_payload_size(min_payload_size), state(READING_BUFFER) {
-  }
+  PayloadWordGenerator() : word_cnt(0), state(READING_BUFFER) {}
   axis_word get_next_word(hls::stream<axis_word> &buffer) {
 #pragma HLS INLINE
+
     axis_word word;
     switch (state) {
     case READING_BUFFER:
       buffer.read(word);
       if (word.last) {
-        if (word_cnt >= min_payload_size - 1) {
+        if (word_cnt >= MIN_PL_SIZE - 1) {
           return counted(word.data, word_cnt, true);
         }
         state = FILLING_OUTPUT;
@@ -89,7 +88,7 @@ public:
       return counted(word.data, word_cnt);
       break;
     case FILLING_OUTPUT:
-      return counted(0, word_cnt, word_cnt == min_payload_size - 1);
+      return counted(0, word_cnt, word_cnt == MIN_PL_SIZE - 1);
       break;
     default:
       return {true, 0, 0};
@@ -103,19 +102,18 @@ public:
 
 private:
   ap_uint<5> word_cnt;
-  ap_uint<6> min_payload_size;
   enum state_type { READING_BUFFER, FILLING_OUTPUT };
   state_type state;
 };
 
 class UDPPacketWordGenerator {
 public:
-  UDPPacketWordGenerator()
-      : word_cnt(0), udp_pkt_length(0), payloadWordGenerator(18) {}
+  UDPPacketWordGenerator() : word_cnt(0) {}
   axis_word get_next_word(const Addresses &loc,
                           const Meta &meta,
                           hls::stream<axis_word> &buffer) {
 #pragma HLS INLINE
+
     switch (word_cnt) {
     case 0:
       udp_pkt_length = meta.payload_length + 8;
@@ -144,7 +142,7 @@ public:
       return counted(udp_pkt_length(10, 8), word_cnt);
       break;
     case 5:
-      udp_checksum1.add(udp_checksum2.accu());
+      udp_checksum1.add(udp_checksum2);
       return counted(udp_pkt_length(7, 0), word_cnt);
       break;
     case 6:
@@ -170,24 +168,24 @@ private:
   ap_uint<16> udp_pkt_length;
   Checksum udp_checksum1;
   Checksum udp_checksum2;
-  PayloadWordGenerator payloadWordGenerator;
+  PayloadWordGenerator<18> payloadWordGenerator;
 };
 
 class IPPacketWordGenerator {
 public:
-  IPPacketWordGenerator()
-      : word_cnt(0), ip_pkt_protocol(0), ip_pkt_length(0),
-        ip_hop_count_and_protocol(0) {}
+  IPPacketWordGenerator() : word_cnt(0) {}
   axis_word get_next_word(const Addresses &loc,
                           const Meta &meta,
                           hls::stream<axis_word> &buffer) {
 #pragma HLS INLINE
+
     switch (word_cnt) {
     case 0:
-      ip_checksum.add(0x45, true);
+      ip_checksum.add(0x4500);
       ip_pkt_protocol = UDP;
       ip_pkt_length = meta.payload_length + 28;
-      ip_hop_count_and_protocol = (IP_HOP_COUNT << 8) + ip_pkt_protocol;
+      ip_hop_count_and_protocol(15, 8) = IP_HOP_COUNT;
+      ip_hop_count_and_protocol(7, 0) = ip_pkt_protocol;
       return counted(0x45, word_cnt);
       break;
     case 1: // DSCP + ECN
@@ -282,13 +280,15 @@ private:
 
 class ETHPacketWordGenerator {
 public:
-  ETHPacketWordGenerator() : word_cnt(0), frm_protocol(IPv4) {}
+  ETHPacketWordGenerator() : word_cnt(0) {}
   axis_word get_next_word(const Addresses &loc,
                           const Meta &meta,
                           hls::stream<axis_word> &buffer) {
 #pragma HLS INLINE
+
     switch (word_cnt) {
     case 0:
+      frm_protocol = IPv4;
       return counted(meta.dst_mac_addr(7, 0), word_cnt);
       break;
     case 1:
@@ -358,6 +358,7 @@ public:
   FCSWordGenerator() : word_cnt(0) {}
   axis_word get_next_word() {
 #pragma HLS INLINE
+
     switch (word_cnt) {
     case 0:
       return counted(fcs(31, 24), word_cnt);
@@ -392,6 +393,7 @@ public:
   PreambleWordGenerator() : word_cnt(0) {}
   axis_word get_next_word() {
 #pragma HLS INLINE
+
     if (word_cnt == 7) {
       return counted(0xD5, word_cnt, true);
     }
@@ -410,6 +412,7 @@ public:
                           const Meta &meta,
                           hls::stream<axis_word> &buffer) {
 #pragma HLS INLINE
+
     switch (state) {
     case PREAMBLE:
       word = preambleWordGenerator.get_next_word();

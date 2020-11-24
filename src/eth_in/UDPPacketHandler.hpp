@@ -27,42 +27,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
+#ifndef UDP_PACKET_HANDLER_HPP
+#define UDP_PACKET_HANDLER_HPP
 #pragma once
 
-#include "stdint.h"
-#include <string>
-#include "Optional.hpp"
+#include "../utils/Addresses.hpp"
+#include "../utils/Optional.hpp"
+#include "../utils/axis_word.hpp"
+#include "../utils/checksums/Checksum.hpp"
+#include "../utils/constants.hpp"
+#include "Status.hpp"
+#include <ap_int.h>
 
-const ap_uint<8> IPG = 96;
+class UDPPacketHandler {
+public:
+  UDPPacketHandler() : cnt(0) {}
+  Optional<axis_word> get_payload(const Optional<axis_word> &word,
+                                  const Addresses &loc,
+                                  Status &status,
+                                  const ap_uint<32> &src_ip_addr);
+  void reset();
 
-// Ethernet protocols
-const uint16_t ARP = 0x0806;
-const uint16_t IPv4 = 0x0800;
-const uint16_t IPv6 = 0x86DD;
-
-// IPv4 protocols
-const uint8_t ICMP = 0x1;
-const uint8_t TCP = 0x6;
-const uint8_t UDP = 0x11;
-
-// IPv4 settings
-const ap_uint<8> IP_IHL = 0x5;
-const ap_uint<8> IP_VERSION = 0x4;
-const ap_uint<8> IP_HOP_COUNT = 0x80;
-
-const ap_uint<32> CRC32_RESIDUE = 0x1CDF4421;
-const ap_uint<32> CRC32_RESIDUE_INV_BREV = 0xC704DD7B;
-
-// Console text color codes
-const std::string FG_RED = "\033[31m";
-const std::string FG_WHITE = "\033[37m";
-const std::string FG_GREEN = "\033[32m";
-const std::string BG_GRAY = "\033[48;5;8m";
-const std::string BG_BLACK = "\033[48;5;0m";
-const std::string COLOR_RESET = "\033[0m";
-
-const Optional<axis_word> NOTHING = {{0, false, 0}, false};
+private:
+  Checksum udp_checksum1;
+  Checksum udp_checksum2;
+  ap_uint<11> cnt;
+  ap_uint<16> udp_pkt_src_port;
+  ap_uint<16> udp_pkt_dst_port;
+  ap_uint<16> udp_pkt_length;
+  ap_uint<16> udp_pkt_checksum;
+};
 
 #endif

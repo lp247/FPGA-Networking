@@ -29,38 +29,43 @@
 
 #include "Checksum.hpp"
 
-void Checksum::add(const ap_uint<16> &next) {
-  this->value_ready = false;
-  this->accumulator += next;
+ap_uint<16> Checksum::get_value() const {
+  ap_uint<16> ret = accumulator(26, 16) + accumulator(15, 0);
+  ret.b_not();
+  return ret;
 }
 
+void Checksum::add(const ap_uint<16> &next) { this->accumulator += next; }
+
 void Checksum::add(const Checksum &other) {
-  this->value_ready = false;
   this->accumulator += other.accumulator;
 }
 
 void Checksum::add_half(const ap_uint<8> &next) {
   ap_uint<16> full_next = next;
-  if (this->next_byte_is_upper_half) {
+  if (this->next_byte_high) {
     full_next <<= 8;
   }
   this->add(full_next);
-  this->next_byte_is_upper_half = !this->next_byte_is_upper_half;
+  this->next_byte_high = !this->next_byte_high;
 }
 
-void Checksum::ensure() {
-#pragma HLS INLINE
-
-  if (!this->value_ready) {
-    value = accumulator(26, 16) + accumulator(16, 0);
-    value.b_not();
-    this->value_ready = true;
-  }
+void Checksum::reset() {
+  IChecksum::reset();
+  this->next_byte_high = true;
 }
 
-ap_uint<16> Checksum::operator()(int high, int low) {
-#pragma HLS INLINE
+ap_uint<16> Checksum::operator()(int high, int low) const {
+  ap_uint<16> checksum = this->get_value();
+  return checksum(high, low);
+}
 
-  this->ensure();
-  return this->value(high, low);
+ap_uint<1> Checksum::operator==(const ap_uint<16> &other) const {
+  ap_uint<16> checksum = this->get_value();
+  return checksum == other;
+}
+
+ap_uint<1> Checksum::operator!=(const ap_uint<16> &other) const {
+  ap_uint<16> checksum = this->get_value();
+  return checksum != other;
 }

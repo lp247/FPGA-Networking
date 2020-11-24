@@ -37,29 +37,20 @@
 // log2((16^4 - 1) * 1536) = 26,5... = 27 Maximum number of bits of maximum sum
 class Checksum : public IChecksum<16, 27> {
 public:
-  Checksum() : IChecksum(), next_byte_is_upper_half(true){};
-  Checksum(const ap_uint<27> &accu)
-      : IChecksum(accu), next_byte_is_upper_half(true) {}
-  template <typename T> bool operator==(T other) {
-    this->ensure();
-    return value == other;
-  }
-  template <typename T> bool operator!=(T other) {
-    this->ensure();
-    return value != other;
-  }
+  Checksum() : IChecksum(), next_byte_high(true){};
+  Checksum(const ap_uint<27> &accu) : IChecksum(accu), next_byte_high(true) {}
+  ap_uint<16> get_value() const;
   void add(const ap_uint<16> &next);
   void add(const Checksum &other);
   void add_half(const ap_uint<8> &next);
-  ap_uint<16> operator()(int high, int low);
-  void reset() {
-    IChecksum::reset();
-    this->next_byte_is_upper_half = true;
-  }
+  void reset();
+  ap_uint<16> operator()(int high, int low) const;
+  ap_uint<1> operator==(const ap_uint<16> &other) const;
+  ap_uint<1> operator!=(const ap_uint<16> &other) const;
 
 private:
   void ensure();
-  ap_uint<1> next_byte_is_upper_half;
+  ap_uint<1> next_byte_high;
 };
 
 #endif

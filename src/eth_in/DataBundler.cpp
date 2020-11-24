@@ -27,42 +27,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
-#pragma once
+#include "DataBundler.hpp"
 
-#include "stdint.h"
-#include <string>
-#include "Optional.hpp"
+Optional<axis_word> DataBundler::bundle(const ap_uint<2> &rxd,
+                                        const ap_uint<1> &rxerr,
+                                        const ap_uint<1> &crsdv,
+                                        Status &status) {
+#pragma HLS INLINE
 
-const ap_uint<8> IPG = 96;
+  if (rxerr) {
+    status.set_rxerr();
+  }
 
-// Ethernet protocols
-const uint16_t ARP = 0x0806;
-const uint16_t IPv4 = 0x0800;
-const uint16_t IPv6 = 0x86DD;
+  if (this->first_run) {
+    this->first_run = false;
+    this->stage.shift(rxd);
+    return NOTHING;
+  }
 
-// IPv4 protocols
-const uint8_t ICMP = 0x1;
-const uint8_t TCP = 0x6;
-const uint8_t UDP = 0x11;
+  this->data(2 * pair_cnt + 1, 2 * pair_cnt) = this->stage.shift(rxd);
+  this->pair_cnt++;
+  if (this->pair_cnt != 0) {
+    return NOTHING;
+  }
 
-// IPv4 settings
-const ap_uint<8> IP_IHL = 0x5;
-const ap_uint<8> IP_VERSION = 0x4;
-const ap_uint<8> IP_HOP_COUNT = 0x80;
+  return {{data, !crsdv, 0}, true};
+}
 
-const ap_uint<32> CRC32_RESIDUE = 0x1CDF4421;
-const ap_uint<32> CRC32_RESIDUE_INV_BREV = 0xC704DD7B;
-
-// Console text color codes
-const std::string FG_RED = "\033[31m";
-const std::string FG_WHITE = "\033[37m";
-const std::string FG_GREEN = "\033[32m";
-const std::string BG_GRAY = "\033[48;5;8m";
-const std::string BG_BLACK = "\033[48;5;0m";
-const std::string COLOR_RESET = "\033[0m";
-
-const Optional<axis_word> NOTHING = {{0, false, 0}, false};
-
-#endif
+void DataBundler::reset() {
+  this->pair_cnt = 0;
+  this->first_run = true;
+}

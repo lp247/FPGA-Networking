@@ -1,6 +1,13 @@
 open_project proj_eth_in -reset
 set_top eth_in
 add_files eth_in.cpp
+add_files DataBundler.cpp
+add_files DataGate.cpp
+add_files DataSpotter.cpp
+add_files EthDataHandler.cpp
+add_files FCSValidator.cpp
+add_files IPPacketHandler.cpp
+add_files UDPPacketHandler.cpp
 add_files ../utils/checksums/Checksum.cpp
 add_files ../utils/checksums/CRC32.cpp
 add_files ../utils/axis_word.cpp

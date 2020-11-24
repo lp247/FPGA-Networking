@@ -34,19 +34,21 @@
 #include "IChecksum.hpp"
 #include "ap_int.h"
 
+ap_uint<32> crc32_preview(const ap_uint<8> &next,
+                          const ap_uint<32> &prev_crc32,
+                          const ap_uint<3> &add_cnt);
+
 class CRC32 : public IChecksum<32, 32> {
 public:
   CRC32() : IChecksum(), add_cnt(0){};
-  ap_uint<32> operator()(int high, int low);
+  ap_uint<32> get_value() const;
   void add(const ap_uint<8> &next);
   void reset();
+  ap_uint<32> operator()(int high, int low);
+  ap_uint<1> operator==(const ap_uint<32> &value);
 
 private:
   ap_uint<3> add_cnt;
 };
-
-ap_uint<32> crc32_preview(const ap_uint<8> &next,
-                          const ap_uint<32> &prev_crc32,
-                          const ap_uint<3> &add_cnt);
 
 #endif

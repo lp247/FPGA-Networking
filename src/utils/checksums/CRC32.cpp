@@ -35,7 +35,10 @@ ap_uint<32> crc32_preview(const ap_uint<8> &next,
 #pragma HLS INLINE
 
   ap_uint<32> c = prev_crc32;
-  ap_uint<8> d = add_cnt < 4 ? next ^ (ap_uint<8>)0xFF : next;
+  ap_uint<8> d = next;
+  if (add_cnt < 4) {
+    d.b_not();
+  }
   ap_uint<32> n;
   n[0] = d[6] ^ d[0] ^ c[24] ^ c[30];
   n[1] = d[7] ^ d[6] ^ d[1] ^ d[0] ^ c[24] ^ c[25] ^ c[30] ^ c[31];
@@ -80,13 +83,30 @@ ap_uint<32> crc32_preview(const ap_uint<8> &next,
   return n;
 }
 
+ap_uint<32> CRC32::get_value() const {
+  ap_uint<32> ret;
+  ap_uint<8> nibble_0 = this->accumulator(7, 0);
+  ap_uint<8> nibble_1 = this->accumulator(15, 8);
+  ap_uint<8> nibble_2 = this->accumulator(23, 16);
+  ap_uint<8> nibble_3 = this->accumulator(31, 24);
+  nibble_0.reverse();
+  nibble_1.reverse();
+  nibble_2.reverse();
+  nibble_3.reverse();
+  ret(31, 24) = nibble_3;
+  ret(23, 16) = nibble_2;
+  ret(15, 8) = nibble_1;
+  ret(7, 0) = nibble_0;
+  ret.b_not();
+  return ret;
+}
+
 void CRC32::add(const ap_uint<8> &next) {
-#pragma HLS INLINE off
+#pragma HLS INLINE
 
   ap_uint<8> rev_next = next;
   rev_next.reverse();
   this->accumulator = crc32_preview(rev_next, this->accumulator, this->add_cnt);
-  this->value_ready = false;
   if (this->add_cnt < 4) {
     this->add_cnt++;
   }
@@ -98,23 +118,11 @@ void CRC32::reset() {
 }
 
 ap_uint<32> CRC32::operator()(int high, int low) {
-#pragma HLS INLINE
+  ap_uint<32> checksum = this->get_value();
+  return checksum(high, low);
+}
 
-  if (!this->value_ready) {
-    ap_uint<8> nibble_0 = this->accumulator(7, 0);
-    ap_uint<8> nibble_1 = this->accumulator(15, 8);
-    ap_uint<8> nibble_2 = this->accumulator(23, 16);
-    ap_uint<8> nibble_3 = this->accumulator(31, 24);
-    nibble_0.reverse();
-    nibble_1.reverse();
-    nibble_2.reverse();
-    nibble_3.reverse();
-    this->value(31, 24) = nibble_3;
-    this->value(23, 16) = nibble_2;
-    this->value(15, 8) = nibble_1;
-    this->value(7, 0) = nibble_0;
-    this->value.b_not();
-    this->value_ready = true;
-  }
-  return this->value(high, low);
+ap_uint<1> CRC32::operator==(const ap_uint<32> &value) {
+  ap_uint<32> checksum = this->get_value();
+  return checksum == value;
 }

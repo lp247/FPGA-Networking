@@ -27,42 +27,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
+#ifndef IP_PACKET_HANDLER_HPP
+#define IP_PACKET_HANDLER_HPP
 #pragma once
 
-#include "stdint.h"
-#include <string>
-#include "Optional.hpp"
+#include "../utils/Addresses.hpp"
+#include "../utils/Optional.hpp"
+#include "../utils/axis_word.hpp"
+#include "../utils/constants.hpp"
+#include "Status.hpp"
+#include "UDPPacketHandler.hpp"
+#include <ap_int.h>
 
-const ap_uint<8> IPG = 96;
+class IPPacketHandler {
+public:
+  IPPacketHandler() : cnt(0) {}
+  Optional<axis_word> get_payload(const Optional<axis_word> &word,
+                                  const Addresses &loc,
+                                  Status &status);
+  void reset();
 
-// Ethernet protocols
-const uint16_t ARP = 0x0806;
-const uint16_t IPv4 = 0x0800;
-const uint16_t IPv6 = 0x86DD;
-
-// IPv4 protocols
-const uint8_t ICMP = 0x1;
-const uint8_t TCP = 0x6;
-const uint8_t UDP = 0x11;
-
-// IPv4 settings
-const ap_uint<8> IP_IHL = 0x5;
-const ap_uint<8> IP_VERSION = 0x4;
-const ap_uint<8> IP_HOP_COUNT = 0x80;
-
-const ap_uint<32> CRC32_RESIDUE = 0x1CDF4421;
-const ap_uint<32> CRC32_RESIDUE_INV_BREV = 0xC704DD7B;
-
-// Console text color codes
-const std::string FG_RED = "\033[31m";
-const std::string FG_WHITE = "\033[37m";
-const std::string FG_GREEN = "\033[32m";
-const std::string BG_GRAY = "\033[48;5;8m";
-const std::string BG_BLACK = "\033[48;5;0m";
-const std::string COLOR_RESET = "\033[0m";
-
-const Optional<axis_word> NOTHING = {{0, false, 0}, false};
+private:
+  UDPPacketHandler udpPacketHandler;
+  ap_uint<5> cnt;
+  ap_uint<4> ip_pkt_ihl;
+  ap_uint<8> ip_pkt_protocol;
+  ap_uint<32> ip_pkt_src_ip_addr;
+  ap_uint<32> ip_pkt_dst_ip_addr;
+};
 
 #endif
