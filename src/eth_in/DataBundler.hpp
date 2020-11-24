@@ -48,7 +48,7 @@ public:
   void reset();
 
 private:
-  ap_shift_reg<ap_uint<2>, 1> stage;
+  ap_uint<2> stage;
   ap_uint<8> data;
   ap_uint<2> pair_cnt;
   ap_uint<1> first_run;

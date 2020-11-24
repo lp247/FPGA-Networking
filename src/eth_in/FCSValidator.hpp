@@ -48,7 +48,10 @@ public:
 
 private:
   ap_uint<3> shift_cnt;
-  ap_shift_reg<ap_uint<8>, 4> crc_buf;
+  ap_uint<8> stage0;
+  ap_uint<8> stage1;
+  ap_uint<8> stage2;
+  ap_uint<8> stage3;
   CRC32 fcs;
 };
 

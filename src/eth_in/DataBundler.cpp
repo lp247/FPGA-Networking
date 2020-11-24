@@ -41,11 +41,12 @@ Optional<axis_word> DataBundler::bundle(const ap_uint<2> &rxd,
 
   if (this->first_run) {
     this->first_run = false;
-    this->stage.shift(rxd);
+    this->stage = rxd;
     return NOTHING;
   }
 
-  this->data(2 * pair_cnt + 1, 2 * pair_cnt) = this->stage.shift(rxd);
+  this->data(2 * pair_cnt + 1, 2 * pair_cnt) = this->stage;
+  this->stage = rxd;
   this->pair_cnt++;
   if (this->pair_cnt != 0) {
     return NOTHING;

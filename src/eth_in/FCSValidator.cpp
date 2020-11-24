@@ -38,7 +38,11 @@ Optional<axis_word> FCSValidator::validate(const Optional<axis_word> &word,
   }
 
   this->fcs.add(word.value.data);
-  ap_uint<8> next_data = this->crc_buf.shift(word.value.data);
+  ap_uint<8> next_data = this->stage3;
+  this->stage3 = this->stage2;
+  this->stage2 = this->stage1;
+  this->stage1 = this->stage0;
+  this->stage0 = word.value.data;
 
   if (this->shift_cnt < 4) {
     this->shift_cnt++;
