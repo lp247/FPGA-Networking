@@ -47,10 +47,12 @@ Optional<axis_word> DataBundler::bundle(const ap_uint<2> &rxd,
 
   this->data(2 * pair_cnt + 1, 2 * pair_cnt) = this->stage;
   this->stage = rxd;
-  this->pair_cnt++;
-  if (this->pair_cnt != 0) {
+  if (this->pair_cnt != 3) {
+    this->pair_cnt++;
     return NOTHING;
   }
+
+  this->pair_cnt++;
 
   return {{data, !crsdv, 0}, true};
 }
