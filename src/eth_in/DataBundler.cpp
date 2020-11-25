@@ -41,14 +41,21 @@ Optional<axis_word> DataBundler::bundle(const ap_uint<2> &rxd,
 
   ap_uint<8> ret_data = this->data;
   this->data(2 * pair_cnt + 1, 2 * pair_cnt) = rxd;
-  if (this->pair_cnt != 0 || this->first_word) {
+
+  if (this->pair_cnt != 0) {
     this->first_word = false;
     this->pair_cnt++;
     return NOTHING;
-  } else {
-    this->pair_cnt++;
-    return {{ret_data, !crsdv, 0}, true};
   }
+
+  if (this->first_word) {
+    this->first_word = false;
+    this->pair_cnt++;
+    return NOTHING;
+  }
+
+  this->pair_cnt++;
+  return {{ret_data, !crsdv, 0}, true};
 }
 
 void DataBundler::reset() {
