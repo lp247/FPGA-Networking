@@ -39,25 +39,19 @@ Optional<axis_word> DataBundler::bundle(const ap_uint<2> &rxd,
     status.set_rxerr();
   }
 
-  if (this->first_run) {
-    this->first_run = false;
-    this->stage = rxd;
-    return NOTHING;
-  }
-
-  this->data(2 * pair_cnt + 1, 2 * pair_cnt) = this->stage;
-  this->stage = rxd;
-  if (this->pair_cnt != 3) {
+  ap_uint<8> ret_data = this->data;
+  this->data(2 * pair_cnt + 1, 2 * pair_cnt) = rxd;
+  if (this->pair_cnt != 0 || this->first_word) {
+    this->first_word = false;
     this->pair_cnt++;
     return NOTHING;
+  } else {
+    this->pair_cnt++;
+    return {{ret_data, !crsdv, 0}, true};
   }
-
-  this->pair_cnt++;
-
-  return {{data, !crsdv, 0}, true};
 }
 
 void DataBundler::reset() {
   this->pair_cnt = 0;
-  this->first_run = true;
+  this->first_word = true;
 }

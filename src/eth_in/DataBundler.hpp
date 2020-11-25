@@ -40,7 +40,7 @@
 
 class DataBundler {
 public:
-  DataBundler() : pair_cnt(0), first_run(true) {}
+  DataBundler() : pair_cnt(0), first_word(true) {}
   Optional<axis_word> bundle(const ap_uint<2> &rxd,
                              const ap_uint<1> &rxerr,
                              const ap_uint<1> &crsdv,
@@ -51,7 +51,7 @@ private:
   ap_uint<2> stage;
   ap_uint<8> data;
   ap_uint<2> pair_cnt;
-  ap_uint<1> first_run;
+  ap_uint<1> first_word;
 };
 
 #endif
