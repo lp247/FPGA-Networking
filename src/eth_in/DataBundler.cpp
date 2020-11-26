@@ -29,36 +29,19 @@
 
 #include "DataBundler.hpp"
 
-Optional<axis_word> DataBundler::bundle(const ap_uint<2> &rxd,
-                                        const ap_uint<1> &rxerr,
-                                        const ap_uint<1> &crsdv,
-                                        Status &status) {
+Optional<ap_uint<8> > DataBundler::bundle(const ap_uint<2> &rxd) {
 #pragma HLS INLINE
 
-  if (rxerr) {
-    status.set_rxerr();
-  }
-
-  ap_uint<8> ret_data = this->data;
   this->data(2 * pair_cnt + 1, 2 * pair_cnt) = rxd;
-
-  if (this->pair_cnt != 0) {
-    this->first_word = false;
+  if (this->pair_cnt == 3) {
     this->pair_cnt++;
-    return NOTHING;
-  }
-
-  if (this->first_word) {
-    this->first_word = false;
-    this->pair_cnt++;
-    return NOTHING;
+    return {this->data, true};
   }
 
   this->pair_cnt++;
-  return {{ret_data, !crsdv, 0}, true};
+  return {0, false};
 }
 
 void DataBundler::reset() {
   this->pair_cnt = 0;
-  this->first_word = true;
 }

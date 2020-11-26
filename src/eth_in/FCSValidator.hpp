@@ -43,10 +43,11 @@ class FCSValidator {
 public:
   FCSValidator() : shift_cnt(0) {}
   Optional<axis_word> validate(const Optional<axis_word> &word, Status &status);
+  void add_to_fcs(const Optional<ap_uint<8> > &value);
   void reset();
-  ap_uint<1> is_good();
 
 private:
+  ap_uint<1> is_good();
   ap_uint<3> shift_cnt;
   ap_uint<8> stage0;
   ap_uint<8> stage1;

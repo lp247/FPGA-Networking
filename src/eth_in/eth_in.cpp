@@ -40,6 +40,7 @@ void eth_in(const ap_uint<2> &rxd,
 
   static DataSpotter dataSpotter;
   static DataBundler dataBundler;
+  static AxisWordGenerator axisWordGenerator;
   static FCSValidator fcsValidator;
   static EthDataHandler ethDataHandler;
   static DataGate dataGate;
@@ -47,25 +48,32 @@ void eth_in(const ap_uint<2> &rxd,
 #pragma HLS STREAM variable = data_buffer depth = 1500
   static hls::stream<ap_uint<1> > valid_buffer;
 #pragma HLS STREAM variable = valid_buffer depth = 6
-  Optional<axis_word> bundled_word;
+  Optional<ap_uint<8> > bundled_data;
+  Optional<axis_word> generated_word;
   Optional<axis_word> validated_word;
   Optional<axis_word> payload_word;
   ap_uint<1> is_end;
 
   dataSpotter.next(rxd, crsdv);
   if (dataSpotter.spotted() || dataSpotter.spotted_before()) {
-    bundled_word = dataBundler.bundle(rxd, rxerr, crsdv, status);
-    validated_word = fcsValidator.validate(bundled_word, status);
+    if (rxerr) {
+      status.set_rxerr();
+    }
+    bundled_data = dataBundler.bundle(rxd);
+    fcsValidator.add_to_fcs(bundled_data);
+    generated_word = axisWordGenerator.generate(bundled_data, crsdv);
+    validated_word = fcsValidator.validate(generated_word, status);
     payload_word = ethDataHandler.get_payload(validated_word, loc, status);
     if (payload_word.is_valid) {
       data_buffer.write(payload_word.value);
     }
-    if (bundled_word.value.last) { // Last only set if is valid word
+    if (generated_word.value.last) { // Last only set if is valid word
       valid_buffer.write(status.has_no_error());
     }
   } else {
     status.reset();
     dataBundler.reset();
+    axisWordGenerator.reset();
     fcsValidator.reset();
     ethDataHandler.reset();
   }

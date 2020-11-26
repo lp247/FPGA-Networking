@@ -27,47 +27,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "FCSValidator.hpp"
+#ifndef AXIS_WORD_GENERATOR_HPP
+#define AXIS_WORD_GENERATOR_HPP
+#pragma once
 
-Optional<axis_word> FCSValidator::validate(const Optional<axis_word> &word,
-                                           Status &status) {
-#pragma HLS INLINE
+#include "../utils/Optional.hpp"
+#include "../utils/axis_word.hpp"
+#include "../utils/constants.hpp"
+#include <ap_int.h>
 
-  if (!word.is_valid) {
-    return NOTHING;
-  }
+class AxisWordGenerator {
+public:
+  AxisWordGenerator() : data_valid(false) {}
+  Optional<axis_word> generate(const Optional<ap_uint<8> > &data,
+                               const ap_uint<2> &crsdv);
+  void reset();
 
-  ap_uint<8> next_data = this->stage3;
-  this->stage3 = this->stage2;
-  this->stage2 = this->stage1;
-  this->stage1 = this->stage0;
-  this->stage0 = word.value.data;
+private:
+  ap_uint<8> data;
+  ap_uint<1> data_valid;
+};
 
-  if (this->shift_cnt < 4) {
-    this->shift_cnt++;
-    return NOTHING;
-  }
-
-  if (word.value.last && !this->is_good()) {
-    status.set_bad_fcs();
-  }
-
-  return {{next_data, word.value.last, 0}, true};
-}
-
-void FCSValidator::add_to_fcs(const Optional<ap_uint<8> > &value) {
-#pragma HLS INLINE
-
-  if (value.is_valid) {
-    this->fcs.add(value.value);
-  }
-}
-
-void FCSValidator::reset() {
-  this->shift_cnt = 0;
-  this->fcs.reset();
-}
-
-ap_uint<1> FCSValidator::is_good() {
-  return this->fcs.get_accumulator() == CRC32_RESIDUE_INV_BREV;
-}
+#endif

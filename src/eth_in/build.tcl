@@ -2,6 +2,7 @@ open_project proj_eth_in -reset
 set_top eth_in
 add_files eth_in.cpp
 add_files DataBundler.cpp
+add_files AxisWordGenerator.cpp
 add_files DataGate.cpp
 add_files DataSpotter.cpp
 add_files EthDataHandler.cpp

@@ -35,6 +35,7 @@
 #include "../utils/Optional.hpp"
 #include "../utils/axis_word.hpp"
 #include "../utils/constants.hpp"
+#include "AxisWordGenerator.hpp"
 #include "DataBundler.hpp"
 #include "DataGate.hpp"
 #include "DataSpotter.hpp"

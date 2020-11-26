@@ -32,26 +32,17 @@
 #pragma once
 
 #include "../utils/Optional.hpp"
-#include "../utils/axis_word.hpp"
-#include "../utils/constants.hpp"
-#include "Status.hpp"
 #include <ap_int.h>
-#include <ap_shift_reg.h>
 
 class DataBundler {
 public:
-  DataBundler() : pair_cnt(0), first_word(true) {}
-  Optional<axis_word> bundle(const ap_uint<2> &rxd,
-                             const ap_uint<1> &rxerr,
-                             const ap_uint<1> &crsdv,
-                             Status &status);
+  DataBundler() : pair_cnt(0) {}
+  Optional<ap_uint<8> > bundle(const ap_uint<2> &rxd);
   void reset();
 
 private:
-  ap_uint<2> stage;
   ap_uint<8> data;
   ap_uint<2> pair_cnt;
-  ap_uint<1> first_word;
 };
 
 #endif
