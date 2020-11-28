@@ -61,7 +61,8 @@ void eth_in(const ap_uint<2> &rxd,
     }
     bundled_data = dataBundler.bundle(rxd);
     fcsValidator.add_to_fcs(bundled_data);
-    generated_word = axisWordGenerator.generate(bundled_data, crsdv);
+    generated_word = axisWordGenerator.get_word(crsdv);
+    axisWordGenerator.add_data(bundled_data);
     validated_word = fcsValidator.validate(generated_word, status);
     payload_word = ethDataHandler.get_payload(validated_word, loc, status);
     if (payload_word.is_valid) {

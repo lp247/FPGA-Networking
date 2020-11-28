@@ -29,18 +29,21 @@
 
 #include "AxisWordGenerator.hpp"
 
-Optional<axis_word>
-AxisWordGenerator::generate(const Optional<ap_uint<8> > &data,
-                            const ap_uint<2> &crsdv) {
+void AxisWordGenerator::add_data(const Optional<ap_uint<8> > &data) {
+#pragma HLS INLINE
+
+  if (data.is_valid) {
+    this->data = data.value;
+    this->data_valid = true;
+  }
+}
+
+Optional<axis_word> AxisWordGenerator::get_word(const ap_uint<2> &crsdv) {
 #pragma HLS INLINE
 
   if (this->data_valid) {
     this->data_valid = false;
     return {{this->data, !crsdv, 0}, true};
-  }
-  if (data.is_valid) {
-    this->data = data.value;
-    this->data_valid = true;
   }
   return NOTHING;
 }
