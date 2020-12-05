@@ -31,11 +31,10 @@
 #define OPTIONAL_HPP
 #pragma once
 
+#include "axis_word.hpp"
 #include <ap_int.h>
 
 enum OptionalEnum { Some, None };
-
-const Optional<axis_word> NOTHING = {None, {0, false, 0}};
 
 template <typename T> struct Optional {
 public:
@@ -44,5 +43,7 @@ public:
   ap_uint<1> is_some() const { return type == Some; }
   ap_uint<1> is_none() const { return type == None; }
 };
+
+const Optional<axis_word> NOTHING = {None, {0, false, 0}};
 
 #endif
