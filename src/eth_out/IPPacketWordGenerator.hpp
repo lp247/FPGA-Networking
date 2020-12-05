@@ -41,7 +41,7 @@
 #include <hls_stream.h>
 
 const ap_uint<8> IP_VERSION_AND_STD_IHL = 0x45;
-const ap_uint<8> IP_VERSION_AND_STD_IHL_AND_NO_SPECIAL = 0x4500;
+const ap_uint<16> IP_VERSION_AND_STD_IHL_AND_NO_SPECIAL = 0x4500;
 const ap_uint<8> IP_HOP_COUNT = 0x80;
 const int IP_PKT_HEADER_BYTE_SIZE = 20;
 const int IP_AND_UDP_HEADER_BYTE_SIZE =
