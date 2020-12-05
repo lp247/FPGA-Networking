@@ -32,7 +32,6 @@
 #pragma once
 
 #include "color_codes.hpp"
-#include <ap_int.h>
 #include <iostream>
 #include <regex>
 #include <string>

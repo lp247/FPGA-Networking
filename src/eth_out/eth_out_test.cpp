@@ -29,6 +29,7 @@
 
 #include "../utils/Addresses.hpp"
 #include "../utils/axis_word.hpp"
+#include "../utils/test/Comparison.hpp"
 #include "../utils/test/ITest.hpp"
 #include "../utils/test/InputStreamFeed.hpp"
 #include "../utils/test/OutputValueStore.hpp"
@@ -37,6 +38,7 @@
 #include "eth_out.hpp"
 #include <ap_int.h>
 #include <initializer_list>
+#include <string>
 #include <vector>
 
 template <int L> class EthOutTest : public ITest {

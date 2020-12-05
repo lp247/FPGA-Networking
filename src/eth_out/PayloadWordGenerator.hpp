@@ -33,6 +33,7 @@
 
 #include "../utils/axis_word.hpp"
 #include "counted.hpp"
+#include <ap_int.h>
 #include <hls_stream.h>
 
 class PayloadWordGenerator {

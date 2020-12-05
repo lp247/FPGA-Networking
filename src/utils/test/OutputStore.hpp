@@ -32,8 +32,7 @@
 #pragma once
 
 #include "Comparison.hpp"
-#include <ap_int.h>
-#include <iostream>
+#include <string>
 #include <vector>
 
 template <typename T> class OutputStore {

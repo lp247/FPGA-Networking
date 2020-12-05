@@ -31,12 +31,10 @@
 #define TEST_OUTPUT_STREAM_STORE_HPP
 #pragma once
 
-#include "../Addresses.hpp"
 #include "OutputStore.hpp"
 #include "StreamContainer.hpp"
 #include "TimedValue.hpp"
-#include <ap_int.h>
-#include <iostream>
+#include <string>
 #include <vector>
 
 template <typename T>

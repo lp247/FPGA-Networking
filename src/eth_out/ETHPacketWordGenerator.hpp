@@ -37,6 +37,7 @@
 #include "IPPacketWordGenerator.hpp"
 #include "Meta.hpp"
 #include "counted.hpp"
+#include <ap_int.h>
 #include <hls_stream.h>
 
 class ETHPacketWordGenerator {

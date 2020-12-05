@@ -29,12 +29,15 @@
 
 #include "../utils/Addresses.hpp"
 #include "../utils/axis_word.hpp"
+#include "../utils/test/Comparison.hpp"
 #include "../utils/test/ITest.hpp"
 #include "../utils/test/InputValueFeed.hpp"
 #include "../utils/test/OutputStreamStore.hpp"
+#include "../utils/test/TimedValue.hpp"
 #include "../utils/test/UDPFrame.hpp"
 #include "eth_in.hpp"
 #include <ap_int.h>
+#include <string>
 #include <vector>
 
 template <int L> class EthInTest : public ITest {

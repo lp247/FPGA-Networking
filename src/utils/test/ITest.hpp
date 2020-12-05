@@ -33,6 +33,8 @@
 
 #include "Comparison.hpp"
 #include "color_codes.hpp"
+#include <iostream>
+#include <string>
 #include <vector>
 
 struct TestResult {

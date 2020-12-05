@@ -34,7 +34,6 @@
 #include "../Addresses.hpp"
 #include "ETHFrame.hpp"
 #include "IPPacket.hpp"
-#include "Packet.hpp"
 #include <ap_int.h>
 #include <vector>
 

@@ -31,12 +31,9 @@
 #define TEST_INPUT_STREAM_FEED_HPP
 #pragma once
 
-#include "../Addresses.hpp"
 #include "InputFeed.hpp"
 #include "StreamContainer.hpp"
 #include "TimedValue.hpp"
-#include <ap_int.h>
-#include <hls_stream.h>
 #include <vector>
 
 template <typename T>

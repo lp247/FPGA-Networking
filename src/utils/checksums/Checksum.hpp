@@ -32,7 +32,7 @@
 #pragma once
 
 #include "IChecksum.hpp"
-#include "ap_int.h"
+#include <ap_int.h>
 
 // log2((16^4 - 1) * 1536) = 26,5... = 27 Maximum number of bits of maximum sum
 class Checksum : public IChecksum<16, 27> {

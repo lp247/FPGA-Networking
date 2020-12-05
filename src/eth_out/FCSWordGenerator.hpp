@@ -34,6 +34,7 @@
 #include "../utils/axis_word.hpp"
 #include "../utils/checksums/CRC32.hpp"
 #include "counted.hpp"
+#include <ap_int.h>
 
 class FCSWordGenerator {
 public:

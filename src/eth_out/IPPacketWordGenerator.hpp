@@ -37,6 +37,7 @@
 #include "../utils/protocols.hpp"
 #include "Meta.hpp"
 #include "UDPPacketWordGenerator.hpp"
+#include <ap_int.h>
 #include <hls_stream.h>
 
 const ap_uint<8> IP_VERSION_AND_STD_IHL = 0x45;

@@ -33,12 +33,9 @@
 
 #include "../utils/Addresses.hpp"
 #include "../utils/axis_word.hpp"
-#include "../utils/checksums/CRC32.hpp"
-#include "../utils/checksums/Checksum.hpp"
-#include "DataSender.hpp"
-#include "DataWordGenerator.hpp"
-#include "Meta.hpp"
 #include "DataInputAnalyzer.hpp"
+#include "DataSender.hpp"
+#include "Meta.hpp"
 #include <ap_int.h>
 #include <hls_stream.h>
 

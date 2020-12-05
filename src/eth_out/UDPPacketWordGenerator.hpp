@@ -36,6 +36,7 @@
 #include "../utils/checksums/Checksum.hpp"
 #include "Meta.hpp"
 #include "PayloadWordGenerator.hpp"
+#include <ap_int.h>
 #include <hls_stream.h>
 
 const int MIN_UDP_PAYLOAD_BYTE_SIZE = 18;

@@ -32,7 +32,7 @@
 #pragma once
 
 #include "IChecksum.hpp"
-#include "ap_int.h"
+#include <ap_int.h>
 
 const ap_uint<32> CRC32_RESIDUE = 0x1CDF4421;
 const ap_uint<32> CRC32_RESIDUE_INV_BREV = 0xC704DD7B;

@@ -31,7 +31,7 @@
 #define CHECKSUMS_ICHECKSUM_HPP
 #pragma once
 
-#include "ap_int.h"
+#include <ap_int.h>
 
 template <int V, int A> class IChecksum {
 public:
