@@ -35,15 +35,14 @@
 #include "../utils/axis_word.hpp"
 #include "../utils/checksums/CRC32.hpp"
 #include "../utils/constants.hpp"
-#include "Status.hpp"
 #include <ap_int.h>
-#include <ap_shift_reg.h>
 
 class FCSValidator {
 public:
   FCSValidator() : shift_cnt(0) {}
-  Optional<axis_word> validate(const Optional<axis_word> &word, Status &status);
-  void add_to_fcs(const Optional<ap_uint<8> > &value);
+  Optional<axis_word> validate(const Optional<axis_word> &word,
+                               ap_uint<1> &bad_data);
+  void add_to_fcs(const Optional<ap_uint<8> > &data);
   void reset();
 
 private:

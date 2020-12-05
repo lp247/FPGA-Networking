@@ -63,6 +63,6 @@ const std::string BG_GRAY = "\033[48;5;8m";
 const std::string BG_BLACK = "\033[48;5;0m";
 const std::string COLOR_RESET = "\033[0m";
 
-const Optional<axis_word> NOTHING = {{0, false, 0}, false};
+const Optional<axis_word> NOTHING = {None, {0, false, 0}};
 
 #endif

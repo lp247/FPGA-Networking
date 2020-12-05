@@ -35,7 +35,6 @@
 #include "../utils/Optional.hpp"
 #include "../utils/axis_word.hpp"
 #include "../utils/constants.hpp"
-#include "Status.hpp"
 #include "UDPPacketHandler.hpp"
 #include <ap_int.h>
 
@@ -44,7 +43,7 @@ public:
   IPPacketHandler() : cnt(0) {}
   Optional<axis_word> get_payload(const Optional<axis_word> &word,
                                   const Addresses &loc,
-                                  Status &status);
+                                  ap_uint<1> &bad_data);
   void reset();
 
 private:

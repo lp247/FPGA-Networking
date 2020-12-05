@@ -29,11 +29,11 @@
 
 #include "FCSValidator.hpp"
 
-Optional<axis_word> FCSValidator::validate(const Optional<axis_word> &word,
-                                           Status &status) {
+Optional<axis_word>
+FCSValidator::validate(const Optional<axis_word> &word, ap_uint<1> &bad_data) {
 #pragma HLS INLINE
 
-  if (!word.is_valid) {
+  if (word.is_none()) {
     return NOTHING;
   }
 
@@ -41,25 +41,25 @@ Optional<axis_word> FCSValidator::validate(const Optional<axis_word> &word,
   this->stage3 = this->stage2;
   this->stage2 = this->stage1;
   this->stage1 = this->stage0;
-  this->stage0 = word.value.data;
+  this->stage0 = word.some.data;
 
   if (this->shift_cnt < 4) {
     this->shift_cnt++;
     return NOTHING;
   }
 
-  if (word.value.last && !this->is_good()) {
-    status.set_bad_fcs();
+  if (word.some.last && !this->is_good()) {
+    bad_data = true;
   }
-
-  return {{next_data, word.value.last, 0}, true};
+  axis_word ret_word = {next_data, word.some.last, 0};
+  return {Some, ret_word};
 }
 
-void FCSValidator::add_to_fcs(const Optional<ap_uint<8> > &value) {
+void FCSValidator::add_to_fcs(const Optional<ap_uint<8> > &data) {
 #pragma HLS INLINE
 
-  if (value.is_valid) {
-    this->fcs.add(value.value);
+  if (data.is_some()) {
+    this->fcs.add(data.some);
   }
 }
 

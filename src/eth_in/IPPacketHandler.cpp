@@ -29,17 +29,19 @@
 
 #include "IPPacketHandler.hpp"
 
-Optional<axis_word> IPPacketHandler::get_payload(
-    const Optional<axis_word> &word, const Addresses &loc, Status &status) {
+Optional<axis_word>
+IPPacketHandler::get_payload(const Optional<axis_word> &word,
+                             const Addresses &loc,
+                             ap_uint<1> &bad_data) {
 #pragma HLS INLINE
 
-  if (!word.is_valid) {
+  if (word.is_none()) {
     return NOTHING;
   }
 
   switch (this->cnt) {
   case 0:
-    this->ip_pkt_ihl = word.value.data(3, 0);
+    this->ip_pkt_ihl = word.some.data(3, 0);
     this->cnt = 1;
     return NOTHING;
     break;
@@ -76,7 +78,7 @@ Optional<axis_word> IPPacketHandler::get_payload(
     return NOTHING;
     break;
   case 9:
-    this->ip_pkt_protocol = word.value.data;
+    this->ip_pkt_protocol = word.some.data;
     this->cnt = 10;
     return NOTHING;
     break;
@@ -89,58 +91,57 @@ Optional<axis_word> IPPacketHandler::get_payload(
     return NOTHING;
     break;
   case 12:
-    this->ip_pkt_src_ip_addr(31, 24) = word.value.data;
+    this->ip_pkt_src_ip_addr(31, 24) = word.some.data;
     this->cnt = 13;
     return NOTHING;
     break;
   case 13:
-    this->ip_pkt_src_ip_addr(23, 16) = word.value.data;
+    this->ip_pkt_src_ip_addr(23, 16) = word.some.data;
     this->cnt = 14;
     return NOTHING;
     break;
   case 14:
-    this->ip_pkt_src_ip_addr(15, 8) = word.value.data;
+    this->ip_pkt_src_ip_addr(15, 8) = word.some.data;
     this->cnt = 15;
     return NOTHING;
     break;
   case 15:
-    this->ip_pkt_src_ip_addr(7, 0) = word.value.data;
+    this->ip_pkt_src_ip_addr(7, 0) = word.some.data;
     this->cnt = 16;
     return NOTHING;
     break;
   case 16:
-    this->ip_pkt_dst_ip_addr(31, 24) = word.value.data;
+    this->ip_pkt_dst_ip_addr(31, 24) = word.some.data;
     this->cnt = 17;
     return NOTHING;
     break;
   case 17:
-    this->ip_pkt_dst_ip_addr(23, 16) = word.value.data;
+    this->ip_pkt_dst_ip_addr(23, 16) = word.some.data;
     this->cnt = 18;
     return NOTHING;
     break;
   case 18:
-    this->ip_pkt_dst_ip_addr(15, 8) = word.value.data;
+    this->ip_pkt_dst_ip_addr(15, 8) = word.some.data;
     this->cnt = 19;
     return NOTHING;
     break;
   case 19:
-    this->ip_pkt_dst_ip_addr(7, 0) = word.value.data;
+    this->ip_pkt_dst_ip_addr(7, 0) = word.some.data;
     this->cnt = 20;
     return NOTHING;
     break;
   default:
     if (loc.ip_addr != ip_pkt_dst_ip_addr) {
-      status.set_bad_ip_addr();
+      return NOTHING;
     }
     if (this->cnt >= this->ip_pkt_ihl * 4) {
-      word.value.user(79, 48) = this->ip_pkt_src_ip_addr;
+      word.some.user(79, 48) = this->ip_pkt_src_ip_addr;
       switch (this->ip_pkt_protocol) {
       case UDP:
         return this->udpPacketHandler.get_payload(
-            word, loc, status, this->ip_pkt_src_ip_addr);
+            word, loc, this->ip_pkt_src_ip_addr, bad_data);
         break;
       default:
-        status.set_bad_ip_protocol();
         return NOTHING;
       }
     }

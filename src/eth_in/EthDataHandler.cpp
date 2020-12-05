@@ -31,95 +31,94 @@
 
 Optional<axis_word> EthDataHandler::get_payload(const Optional<axis_word> &word,
                                                 const Addresses &loc,
-                                                Status &status) {
+                                                ap_uint<1> &bad_data) {
 #pragma HLS INLINE
 
-  if (!word.is_valid) {
+  if (word.is_none()) {
     return NOTHING;
   }
 
   switch (this->cnt) {
   case 0:
-    frm_dst_addr(47, 40) = word.value.data;
+    frm_dst_addr(47, 40) = word.some.data;
     this->cnt = 1;
     return NOTHING;
     break;
   case 1:
-    frm_dst_addr(39, 32) = word.value.data;
+    frm_dst_addr(39, 32) = word.some.data;
     this->cnt = 2;
     return NOTHING;
     break;
   case 2:
-    frm_dst_addr(31, 24) = word.value.data;
+    frm_dst_addr(31, 24) = word.some.data;
     this->cnt = 3;
     return NOTHING;
     break;
   case 3:
-    frm_dst_addr(23, 16) = word.value.data;
+    frm_dst_addr(23, 16) = word.some.data;
     this->cnt = 4;
     return NOTHING;
     break;
   case 4:
-    frm_dst_addr(15, 8) = word.value.data;
+    frm_dst_addr(15, 8) = word.some.data;
     this->cnt = 5;
     return NOTHING;
     break;
   case 5:
-    frm_dst_addr(7, 0) = word.value.data;
+    frm_dst_addr(7, 0) = word.some.data;
     this->cnt = 6;
     return NOTHING;
     break;
   case 6:
-    frm_src_addr(47, 40) = word.value.data;
+    frm_src_addr(47, 40) = word.some.data;
     this->cnt = 7;
     return NOTHING;
     break;
   case 7:
-    frm_src_addr(39, 32) = word.value.data;
+    frm_src_addr(39, 32) = word.some.data;
     this->cnt = 8;
     return NOTHING;
     break;
   case 8:
-    frm_src_addr(31, 24) = word.value.data;
+    frm_src_addr(31, 24) = word.some.data;
     this->cnt = 9;
     return NOTHING;
     break;
   case 9:
-    frm_src_addr(23, 16) = word.value.data;
+    frm_src_addr(23, 16) = word.some.data;
     this->cnt = 10;
     return NOTHING;
     break;
   case 10:
-    frm_src_addr(15, 8) = word.value.data;
+    frm_src_addr(15, 8) = word.some.data;
     this->cnt = 11;
     return NOTHING;
     break;
   case 11:
-    frm_src_addr(7, 0) = word.value.data;
+    frm_src_addr(7, 0) = word.some.data;
     this->cnt = 12;
     return NOTHING;
     break;
   case 12:
-    frm_protocol(15, 8) = word.value.data;
+    frm_protocol(15, 8) = word.some.data;
     this->cnt = 13;
     return NOTHING;
     break;
   case 13:
-    frm_protocol(7, 0) = word.value.data;
+    frm_protocol(7, 0) = word.some.data;
     this->cnt = 14;
     return NOTHING;
     break;
   default:
     if (loc.mac_addr != frm_dst_addr) {
-      status.set_bad_mac_addr();
+      return NOTHING;
     }
-    word.value.user(47, 0) = frm_src_addr;
+    word.some.user(47, 0) = frm_src_addr;
     switch (frm_protocol) {
     case IPv4:
-      return this->ipPacketHandler.get_payload(word, loc, status);
+      return this->ipPacketHandler.get_payload(word, loc, bad_data);
       break;
     default:
-      status.set_bad_eth_protocol();
       return NOTHING;
     }
     break;

@@ -155,14 +155,12 @@ int main() {
 
   for (int i = 0; i < tests.size(); i++) {
     for (int j = 0; j < NUM_CYCLES; j++) {
-      Status status;
       tests[i].feed_inputs(j);
       eth_in(tests[i].rxd_feed.value,
              tests[i].rxerr_feed.value,
              tests[i].crsdv_feed.value,
              tests[i].data_out_store.stream,
-             tests[i].loc,
-             status);
+             tests[i].loc);
       tests[i].store_outputs(j);
     }
     errors += tests[i].get_result();

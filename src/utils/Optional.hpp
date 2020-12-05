@@ -33,9 +33,14 @@
 
 #include <ap_int.h>
 
+enum OptionalEnum { Some, None };
+
 template <typename T> struct Optional {
-  T value;
-  ap_uint<1> is_valid;
+public:
+  OptionalEnum type;
+  T some;
+  ap_uint<1> is_some() const { return type == Some; }
+  ap_uint<1> is_none() const { return type == None; }
 };
 
 #endif

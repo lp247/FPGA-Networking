@@ -41,14 +41,12 @@
 #include "DataSpotter.hpp"
 #include "EthDataHandler.hpp"
 #include "FCSValidator.hpp"
-#include "Status.hpp"
 #include <hls_stream.h>
 
 void eth_in(const ap_uint<2> &rxd,
             const ap_uint<1> &rxerr,
             const ap_uint<1> &crsdv,
             hls::stream<axis_word> &data_out,
-            const Addresses &loc,
-            Status &status);
+            const Addresses &loc);
 
 #endif

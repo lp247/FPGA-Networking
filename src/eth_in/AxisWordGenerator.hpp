@@ -39,8 +39,8 @@
 class AxisWordGenerator {
 public:
   AxisWordGenerator() : data_valid(false) {}
-  void add_data(const Optional<ap_uint<8> > &data);
-  Optional<axis_word> get_word(const ap_uint<2> &crsdv);
+  Optional<axis_word> next(const Optional<ap_uint<8> > &data,
+                           const ap_uint<2> &crsdv);
   void reset();
 
 private:

@@ -33,9 +33,9 @@ void eth_in(const ap_uint<2> &rxd,
             const ap_uint<1> &rxerr,
             const ap_uint<1> &crsdv,
             hls::stream<axis_word> &data_out,
-            const Addresses &loc,
-            Status &status) {
+            const Addresses &loc) {
 #pragma HLS INTERFACE axis port = data_out
+#pragma HLS DISAGGREGATE variable = loc
 #pragma HLS PIPELINE II = 1
 
   static DataSpotter dataSpotter;
@@ -49,34 +49,36 @@ void eth_in(const ap_uint<2> &rxd,
   static hls::stream<ap_uint<1> > valid_buffer;
 #pragma HLS STREAM variable = valid_buffer depth = 6
   Optional<ap_uint<8> > bundled_data;
-  Optional<axis_word> generated_word;
-  Optional<axis_word> validated_word;
-  Optional<axis_word> payload_word;
-  ap_uint<1> is_end;
+  Optional<axis_word> data_word;
+  Optional<axis_word> validator_output;
+  Optional<axis_word> payload;
+  static ap_uint<1> bad_data = false;
+  static ap_uint<1> data_written = false;
 
   dataSpotter.next(rxd, crsdv);
   if (dataSpotter.spotted() || dataSpotter.spotted_before()) {
     if (rxerr) {
-      status.set_rxerr();
+      bad_data = true;
     }
     bundled_data = dataBundler.bundle(rxd);
     fcsValidator.add_to_fcs(bundled_data);
-    generated_word = axisWordGenerator.get_word(crsdv);
-    axisWordGenerator.add_data(bundled_data);
-    validated_word = fcsValidator.validate(generated_word, status);
-    payload_word = ethDataHandler.get_payload(validated_word, loc, status);
-    if (payload_word.is_valid) {
-      data_buffer.write(payload_word.value);
+    data_word = axisWordGenerator.next(bundled_data, crsdv);
+    validator_output = fcsValidator.validate(data_word, bad_data);
+    payload = ethDataHandler.get_payload(validator_output, loc, bad_data);
+    if (payload.is_some()) {
+      data_buffer.write(payload.some);
+      data_written = true;
     }
-    if (generated_word.value.last) { // Last only set if is valid word
-      valid_buffer.write(status.has_no_error());
+    if (validator_output.some.last && data_written) {
+      valid_buffer.write(!bad_data);
     }
   } else {
-    status.reset();
     dataBundler.reset();
     axisWordGenerator.reset();
     fcsValidator.reset();
     ethDataHandler.reset();
+    bad_data = false;
+    data_written = false;
   }
   dataGate.handle(data_buffer, valid_buffer, data_out);
 }

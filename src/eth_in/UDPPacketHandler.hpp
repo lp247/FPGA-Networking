@@ -36,7 +36,6 @@
 #include "../utils/axis_word.hpp"
 #include "../utils/checksums/Checksum.hpp"
 #include "../utils/constants.hpp"
-#include "Status.hpp"
 #include <ap_int.h>
 
 class UDPPacketHandler {
@@ -44,8 +43,8 @@ public:
   UDPPacketHandler() : cnt(0) {}
   Optional<axis_word> get_payload(const Optional<axis_word> &word,
                                   const Addresses &loc,
-                                  Status &status,
-                                  const ap_uint<32> &src_ip_addr);
+                                  const ap_uint<32> &src_ip_addr,
+                                  ap_uint<1> &bad_data);
   void reset();
 
 private:

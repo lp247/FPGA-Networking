@@ -32,69 +32,69 @@
 Optional<axis_word>
 UDPPacketHandler::get_payload(const Optional<axis_word> &word,
                               const Addresses &loc,
-                              Status &status,
-                              const ap_uint<32> &src_ip_addr) {
+                              const ap_uint<32> &src_ip_addr,
+                              ap_uint<1> &bad_data) {
 #pragma HLS INLINE
 
-  if (!word.is_valid) {
+  if (word.is_none()) {
     return NOTHING;
   }
 
   switch (this->cnt) {
   case 0:
-    this->udp_pkt_src_port(15, 8) = word.value.data;
+    this->udp_pkt_src_port(15, 8) = word.some.data;
     this->udp_checksum1.add(loc.ip_addr(31, 16));
     this->udp_checksum2.add(loc.ip_addr(15, 0));
     this->cnt = 1;
     return NOTHING;
     break;
   case 1:
-    this->udp_pkt_src_port(7, 0) = word.value.data;
+    this->udp_pkt_src_port(7, 0) = word.some.data;
     this->udp_checksum1.add(src_ip_addr(31, 16));
     this->udp_checksum2.add(src_ip_addr(15, 0));
     this->cnt = 2;
     return NOTHING;
     break;
   case 2:
-    this->udp_pkt_dst_port(15, 8) = word.value.data;
+    this->udp_pkt_dst_port(15, 8) = word.some.data;
     this->udp_checksum1.add(this->udp_pkt_src_port);
     this->udp_checksum2.add(0x0011);
     this->cnt = 3;
     return NOTHING;
     break;
   case 3:
-    this->udp_pkt_dst_port(7, 0) = word.value.data;
+    this->udp_pkt_dst_port(7, 0) = word.some.data;
     this->udp_checksum1.add(this->udp_pkt_dst_port);
     this->cnt = 4;
     return NOTHING;
     break;
   case 4:
-    this->udp_pkt_length(15, 0) = word.value.data;
+    this->udp_pkt_length(15, 0) = word.some.data;
     this->cnt = 5;
     return NOTHING;
     break;
   case 5:
-    this->udp_pkt_length(7, 0) = word.value.data;
+    this->udp_pkt_length(7, 0) = word.some.data;
     this->udp_checksum1.add(this->udp_pkt_length);
     this->udp_checksum2.add(this->udp_pkt_length);
     this->cnt = 6;
     return NOTHING;
     break;
   case 6:
-    this->udp_pkt_checksum(15, 8) = word.value.data;
+    this->udp_pkt_checksum(15, 8) = word.some.data;
     this->udp_checksum1.add(this->udp_checksum2);
     this->cnt = 7;
     return NOTHING;
     break;
   case 7:
-    this->udp_pkt_checksum(7, 0) = word.value.data;
+    this->udp_pkt_checksum(7, 0) = word.some.data;
     this->udp_checksum1.add(this->udp_pkt_checksum);
     this->cnt = 8;
     return NOTHING;
     break;
   default:
     if (loc.udp_port != udp_pkt_dst_port) {
-      status.set_bad_udp_port();
+      return NOTHING;
     }
 
     if (this->cnt >= this->udp_pkt_length) {
@@ -102,14 +102,16 @@ UDPPacketHandler::get_payload(const Optional<axis_word> &word,
     }
 
     ap_uint<1> is_last_word = this->cnt == (this->udp_pkt_length - 1);
-    ap_uint<96> new_user = word.value.user;
+    ap_uint<96> new_user = word.some.user;
     new_user(95, 80) = this->udp_pkt_src_port;
-    this->udp_checksum1.add_half(word.value.data);
-    if (is_last_word && udp_pkt_checksum != 0 && this->udp_checksum1 != 0) {
-      status.set_bad_udp_checksum();
-    }
+    this->udp_checksum1.add_half(word.some.data);
     this->cnt++;
-    return {{word.value.data, is_last_word, new_user}, true};
+    axis_word ret_word = {word.some.data, is_last_word, new_user};
+    ap_uint<1> bad_checksum = udp_pkt_checksum != 0 && this->udp_checksum1 != 0;
+    if (is_last_word && bad_checksum) {
+      bad_data = true;
+    }
+    return {Some, ret_word};
     break;
   }
 }

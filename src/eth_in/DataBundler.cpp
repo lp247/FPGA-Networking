@@ -35,13 +35,11 @@ Optional<ap_uint<8> > DataBundler::bundle(const ap_uint<2> &rxd) {
   this->data(2 * pair_cnt + 1, 2 * pair_cnt) = rxd;
   if (this->pair_cnt == 3) {
     this->pair_cnt++;
-    return {this->data, true};
+    return {Some, this->data};
   }
 
   this->pair_cnt++;
-  return {0, false};
+  return {None, 0};
 }
 
-void DataBundler::reset() {
-  this->pair_cnt = 0;
-}
+void DataBundler::reset() { this->pair_cnt = 0; }
