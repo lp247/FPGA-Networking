@@ -27,22 +27,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#ifndef PREAMBLE_WORD_GENERATOR
+#define PREAMBLE_WORD_GENERATOR
+#pragma once
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+#include "../utils/axis_word.hpp"
+#include "../utils/wordio.hpp"
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+class PreambleWordGenerator {
+public:
+  PreambleWordGenerator() : word_cnt(0) {}
+  axis_word get_next_word();
+  void reset();
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
-}
+private:
+  ap_uint<3> word_cnt;
+};
+
+#endif

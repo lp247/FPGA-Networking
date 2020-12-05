@@ -27,22 +27,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#include "DataWordGenerator.hpp"
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+axis_word DataWordGenerator::get_next_word(const Addresses &loc,
+                                           const Meta &meta,
+                                           hls::stream<axis_word> &buffer) {
+#pragma HLS INLINE
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+  switch (state) {
+  case PREAMBLE:
+    word = preambleWordGenerator.get_next_word();
+    return {word.data, false, 0};
+    break;
+  case DATA:
+    word = ethPacketWordGenerator.get_next_word(loc, meta, buffer);
+    return {word.data, false, 0};
+    break;
+  case FCS:
+    word = fcsWordGenerator.get_next_word();
+    return word;
+    break;
+  default:
+    return {true, 0, 0};
+    break;
+  }
+}
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
+void DataWordGenerator::maintenance() {
+#pragma HLS INLINE
+  switch (state) {
+  case PREAMBLE:
+    if (word.last) {
+      state = DATA;
+    }
+    break;
+  case DATA:
+    fcsWordGenerator.add_to_fcs(word.data);
+    if (word.last) {
+      state = FCS;
+    }
+    break;
+  case FCS:
+    if (word.last) {
+      state = PREAMBLE;
+    }
+    break;
+  default:
+    break;
+  }
+}
+
+void DataWordGenerator::reset() {
+  preambleWordGenerator.reset();
+  ethPacketWordGenerator.reset();
+  fcsWordGenerator.reset();
+  state = PREAMBLE;
 }

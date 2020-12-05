@@ -27,22 +27,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#include "UDPPacketWordGenerator.hpp"
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+axis_word UDPPacketWordGenerator::get_next_word(
+    const Addresses &loc, const Meta &meta, hls::stream<axis_word> &buffer) {
+#pragma HLS INLINE
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+  switch (word_cnt) {
+  case 0:
+    udp_pkt_length = meta.payload_length + UDP_PKT_HEADER_BYTE_SIZE;
+    udp_checksum1 = Checksum(loc.ip_addr(31, 16));
+    udp_checksum2 = Checksum(meta.dst_ip_addr(31, 16));
+    return counted(loc.udp_port(15, 8), word_cnt);
+    break;
+  case 1:
+    udp_checksum1.add(loc.ip_addr(15, 0));
+    udp_checksum2.add(meta.dst_ip_addr(15, 0));
+    return counted(loc.udp_port(7, 0), word_cnt);
+    break;
+  case 2:
+    udp_checksum1.add(udp_pkt_length);
+    udp_checksum2.add(udp_pkt_length);
+    return counted(meta.dst_udp_port(15, 8), word_cnt);
+    break;
+  case 3:
+    udp_checksum1.add(loc.udp_port);
+    udp_checksum2.add(meta.dst_udp_port);
+    return counted(meta.dst_udp_port(7, 0), word_cnt);
+    break;
+  case 4:
+    udp_checksum1.add(0x0011);
+    udp_checksum2.add(meta.payload_checksum);
+    return counted(udp_pkt_length(10, 8), word_cnt);
+    break;
+  case 5:
+    udp_checksum1.add(udp_checksum2);
+    return counted(udp_pkt_length(7, 0), word_cnt);
+    break;
+  case 6:
+    return counted(udp_checksum1(15, 8), word_cnt);
+    break;
+  case 7:
+    return counted(udp_checksum1(7, 0), word_cnt);
+    break;
+  default:
+    return payloadWordGenerator.get_next_word(buffer);
+    break;
+  }
+}
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
+void UDPPacketWordGenerator::reset() {
+  word_cnt = 0;
+  udp_checksum1.reset();
+  udp_checksum2.reset();
+  payloadWordGenerator.reset();
 }

@@ -27,22 +27,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#ifndef IP_PACKET_WORD_GENERATOR
+#define IP_PACKET_WORD_GENERATOR
+#pragma once
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+#include "../utils/Addresses.hpp"
+#include "../utils/axis_word.hpp"
+#include "../utils/checksums/Checksum.hpp"
+#include "../utils/constants.hpp"
+#include "../utils/wordio.hpp"
+#include "Meta.hpp"
+#include "UDPPacketWordGenerator.hpp"
+#include <hls_stream.h>
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+const int IP_PKT_HEADER_BYTE_SIZE = 20;
+const int IP_AND_UDP_HEADER_BYTE_SIZE =
+    IP_PKT_HEADER_BYTE_SIZE + UDP_PKT_HEADER_BYTE_SIZE;
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
-}
+class IPPacketWordGenerator {
+public:
+  IPPacketWordGenerator() : word_cnt(0) {}
+  axis_word get_next_word(const Addresses &loc,
+                          const Meta &meta,
+                          hls::stream<axis_word> &buffer);
+  void reset();
+
+private:
+  ap_uint<32> word_cnt;
+  Checksum ip_checksum;
+  ap_uint<8> ip_pkt_protocol;
+  ap_uint<11> ip_pkt_length;
+  ap_uint<16> ip_hop_count_and_protocol;
+  UDPPacketWordGenerator udpPacketWordGenerator;
+};
+
+#endif

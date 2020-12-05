@@ -27,22 +27,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#ifndef PAYLOAD_INFO_CALCULATOR
+#define PAYLOAD_INFO_CALCULATOR
+#pragma once
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+#include "../utils/axis_word.hpp"
+#include "../utils/checksums/Checksum.hpp"
+#include "Meta.hpp"
+#include <ap_int.h>
+#include <hls_stream.h>
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+class DataInputAnalyzer {
+public:
+  DataInputAnalyzer() : byte_cnt(0) {}
+  void handle(hls::stream<axis_word> &data_in,
+              hls::stream<axis_word> &buffer,
+              hls::stream<Meta> &meta_buffer);
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
-}
+private:
+  ap_uint<11> byte_cnt;
+  Checksum checksum;
+};
+
+#endif

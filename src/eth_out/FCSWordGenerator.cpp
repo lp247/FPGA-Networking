@@ -27,22 +27,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#include "FCSWordGenerator.hpp"
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+axis_word FCSWordGenerator::get_next_word() {
+#pragma HLS INLINE
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+  switch (word_cnt) {
+  case 0:
+    return counted(fcs(31, 24), word_cnt);
+    break;
+  case 1:
+    return counted(fcs(23, 16), word_cnt);
+    break;
+  case 2:
+    return counted(fcs(15, 8), word_cnt);
+    break;
+  case 3:
+    return counted(fcs(7, 0), word_cnt, true);
+    break;
+  default:
+    return {true, 0, 0};
+    break;
+  }
+}
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
+void FCSWordGenerator::add_to_fcs(const ap_uint<8> &word) {
+#pragma HLS INLINE
+
+  fcs.add(word);
+}
+
+void FCSWordGenerator::reset() {
+  word_cnt = 0;
+  fcs.reset();
 }

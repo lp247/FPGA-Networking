@@ -27,22 +27,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#include "PayloadWordGenerator.hpp"
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+axis_word PayloadWordGenerator::get_next_word(hls::stream<axis_word> &buffer) {
+#pragma HLS INLINE
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+  axis_word word;
+  switch (state) {
+  case READING_BUFFER:
+    buffer.read(word);
+    if (word.last) {
+      if (word_cnt >= min_payload_byte_size - 1) {
+        return counted(word.data, word_cnt, true);
+      }
+      state = FILLING_OUTPUT;
+    }
+    return counted(word.data, word_cnt);
+    break;
+  case FILLING_OUTPUT:
+    return counted(0, word_cnt, word_cnt == min_payload_byte_size - 1);
+    break;
+  default:
+    return {true, 0, 0};
+    break;
+  }
+}
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
+void PayloadWordGenerator::reset() {
+  word_cnt = 0;
+  state = READING_BUFFER;
 }

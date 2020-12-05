@@ -27,22 +27,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#ifndef FCS_WORD_GENERATOR
+#define FCS_WORD_GENERATOR
+#pragma once
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+#include "../utils/axis_word.hpp"
+#include "../utils/checksums/CRC32.hpp"
+#include "../utils/wordio.hpp"
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+class FCSWordGenerator {
+public:
+  FCSWordGenerator() : word_cnt(0) {}
+  axis_word get_next_word();
+  void add_to_fcs(const ap_uint<8> &word);
+  void reset();
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
-}
+private:
+  ap_uint<2> word_cnt;
+  CRC32 fcs;
+};
+
+#endif

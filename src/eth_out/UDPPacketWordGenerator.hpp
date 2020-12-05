@@ -27,22 +27,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#ifndef UDP_PACKET_WORD_GENERATOR
+#define UDP_PACKET_WORD_GENERATOR
+#pragma once
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+#include "../utils/Addresses.hpp"
+#include "../utils/axis_word.hpp"
+#include "../utils/checksums/Checksum.hpp"
+#include "Meta.hpp"
+#include "PayloadWordGenerator.hpp"
+#include <hls_stream.h>
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+const int MIN_UDP_PAYLOAD_BYTE_SIZE = 18;
+const int UDP_PKT_HEADER_BYTE_SIZE = 8;
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
-}
+class UDPPacketWordGenerator {
+public:
+  UDPPacketWordGenerator()
+      : word_cnt(0), payloadWordGenerator(MIN_UDP_PAYLOAD_BYTE_SIZE) {}
+  axis_word get_next_word(const Addresses &loc,
+                          const Meta &meta,
+                          hls::stream<axis_word> &buffer);
+  void reset();
+
+private:
+  ap_uint<5> word_cnt;
+  ap_uint<16> udp_pkt_length;
+  Checksum udp_checksum1;
+  Checksum udp_checksum2;
+  PayloadWordGenerator payloadWordGenerator;
+};
+
+#endif

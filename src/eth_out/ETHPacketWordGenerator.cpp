@@ -27,27 +27,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WORDIO_HPP
-#define WORDIO_HPP
-#pragma once
+#include "ETHPacketWordGenerator.hpp"
 
-#include "./Addresses.hpp"
-#include "hls_stream.h"
-#include <ap_int.h>
-
-void write_data(const axis_word &word,
-                hls::stream<axis_word> &stream,
-                ap_uint<11> &cnt);
-
-void read_data(axis_word &word,
-               hls::stream<axis_word> &stream,
-               ap_uint<11> &cnt);
-
-template <int I>
-axis_word counted(const ap_uint<8> &data, ap_uint<I> &cnt, bool last = false) {
+axis_word ETHPacketWordGenerator::get_next_word(
+    const Addresses &loc, const Meta &meta, hls::stream<axis_word> &buffer) {
 #pragma HLS INLINE
-  cnt++;
-  return {data, last, 0};
+
+  switch (word_cnt) {
+  case 0:
+    frm_protocol = IPv4;
+    return counted(meta.dst_mac_addr(7, 0), word_cnt);
+    break;
+  case 1:
+    return counted(meta.dst_mac_addr(15, 8), word_cnt);
+    break;
+  case 2:
+    return counted(meta.dst_mac_addr(23, 16), word_cnt);
+    break;
+  case 3:
+    return counted(meta.dst_mac_addr(31, 24), word_cnt);
+    break;
+  case 4:
+    return counted(meta.dst_mac_addr(39, 32), word_cnt);
+    break;
+  case 5:
+    return counted(meta.dst_mac_addr(47, 40), word_cnt);
+    break;
+  case 6:
+    return counted(loc.mac_addr(7, 0), word_cnt);
+    break;
+  case 7:
+    return counted(loc.mac_addr(15, 8), word_cnt);
+    break;
+  case 8:
+    return counted(loc.mac_addr(23, 16), word_cnt);
+    break;
+  case 9:
+    return counted(loc.mac_addr(31, 24), word_cnt);
+    break;
+  case 10:
+    return counted(loc.mac_addr(39, 32), word_cnt);
+    break;
+  case 11:
+    return counted(loc.mac_addr(47, 40), word_cnt);
+    break;
+  case 12:
+    return counted(frm_protocol(15, 8), word_cnt);
+    break;
+  case 13:
+    return counted(frm_protocol(7, 0), word_cnt);
+    break;
+  default:
+    switch (frm_protocol) {
+    case IPv4:
+      return ipPacketWordGenerator.get_next_word(loc, meta, buffer);
+      break;
+    default:
+      return {true, 0, 0};
+      break;
+    }
+    break;
+  }
 }
 
-#endif
+void ETHPacketWordGenerator::reset() {
+  word_cnt = 0;
+  ipPacketWordGenerator.reset();
+}

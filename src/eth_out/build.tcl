@@ -1,6 +1,15 @@
 open_project proj_eth_out -reset
 set_top eth_out
 add_files eth_out.cpp
+add_files DataInputAnalyzer.cpp
+add_files DataSender.cpp
+add_files DataWordGenerator.cpp
+add_files ETHPacketWordGenerator.cpp
+add_files FCSWordGenerator.cpp
+add_files IPPacketWordGenerator.cpp
+add_files PayloadWordGenerator.cpp
+add_files PreambleWordGenerator.cpp
+add_files UDPPacketWordGenerator.cpp
 add_files ../utils/checksums/Checksum.cpp
 add_files ../utils/checksums/CRC32.cpp
 add_files ../utils/axis_word.cpp

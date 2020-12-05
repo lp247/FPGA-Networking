@@ -36,14 +36,12 @@
 #include "../utils/checksums/CRC32.hpp"
 #include "../utils/checksums/Checksum.hpp"
 #include "../utils/constants.hpp"
+#include "DataSender.hpp"
+#include "DataWordGenerator.hpp"
+#include "Meta.hpp"
+#include "DataInputAnalyzer.hpp"
 #include <ap_int.h>
 #include <hls_stream.h>
-
-const int MIN_UDP_PAYLOAD_BYTE_SIZE = 18;
-const int UDP_PKT_HEADER_BYTE_SIZE = 8;
-const int MIN_UDP_PKT_BYTE_SIZE = 26;
-const int IP_PKT_HEADER_BYTE_SIZE = 20;
-const int MIN_IP_PKT_BYTE_SIZE = 46;
 
 void eth_out(hls::stream<axis_word> &data_in,
              ap_uint<2> &txd,

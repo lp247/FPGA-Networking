@@ -27,22 +27,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth_out.hpp"
+#ifndef DATA_SENDER
+#define DATA_SENDER
+#pragma once
 
-void eth_out(hls::stream<axis_word> &data_in,
-             ap_uint<2> &txd,
-             ap_uint<1> &txen,
-             const Addresses &loc) {
-#pragma HLS INTERFACE axis port = data_in
-#pragma HLS DISAGGREGATE variable = loc
+#include "../utils/Addresses.hpp"
+#include "../utils/axis_word.hpp"
+#include "DataWordGenerator.hpp"
+#include "Meta.hpp"
+#include <ap_int.h>
+#include <hls_stream.h>
 
-  static DataInputAnalyzer dataInputAnalyzer;
-  static DataSender dataSender;
-  static hls::stream<axis_word> buffer;
-#pragma HLS STREAM variable = buffer depth = 1500
-  static hls::stream<Meta> meta_buffer;
-#pragma HLS STREAM variable = meta_buffer depth = 6
+class DataSender {
+public:
+  DataSender() : data_bit_pair_cnt(0), ipg_cnt(0) {}
+  void handle(ap_uint<2> &txd,
+              ap_uint<1> &txen,
+              hls::stream<axis_word> &buffer,
+              hls::stream<Meta> &meta_buffer,
+              const Addresses &loc);
 
-  dataInputAnalyzer.handle(data_in, buffer, meta_buffer);
-  dataSender.handle(txd, txen, buffer, meta_buffer, loc);
-}
+private:
+  enum state_type { IDLE, SENDING_PACKET, WAITING_FOR_INTER_PACKAGE_GAP };
+  state_type state = IDLE;
+  Meta meta;
+  axis_word word;
+  ap_uint<2> data_bit_pair_cnt;
+  ap_uint<7> ipg_cnt;
+  DataWordGenerator dataWordGenerator;
+};
+
+#endif
