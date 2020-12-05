@@ -27,30 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "wordio.hpp"
+#ifndef COUNTED_HPP
+#define COUNTED_HPP
+#pragma once
 
-void write_data(const axis_word &word,
-                hls::stream<axis_word> &stream,
-                ap_uint<11> &cnt) {
+#include "../utils/axis_word.hpp"
+#include <ap_int.h>
+
+template <int I>
+axis_word counted(const ap_uint<8> &data, ap_uint<I> &cnt, bool last = false) {
 #pragma HLS INLINE
 
-  stream.write(word);
-  if (word.last) {
-    cnt = 0;
-  } else {
-    cnt++;
-  }
+  cnt++;
+  return {data, last, 0};
 }
 
-void read_data(axis_word &word,
-               hls::stream<axis_word> &stream,
-               ap_uint<11> &cnt) {
-#pragma HLS INLINE
-
-  word = stream.read();
-  if (word.last) {
-    cnt = 0;
-  } else {
-    cnt++;
-  }
-}
+#endif

@@ -27,21 +27,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VECTOR_TRANSFORMATIONS_HPP
-#define VECTOR_TRANSFORMATIONS_HPP
+#ifndef PROTOCOLS_HPP
+#define PROTOCOLS_HPP
 #pragma once
 
-#include <vector>
+#include <stdint.h>
 
-template <typename T>
-std::vector<T> enlarge(std::vector<T> input, int size, T default_value) {
-  std::vector<T> output = input;
-  output.resize(size, default_value);
-  return output;
-}
+// Ethernet
+const uint16_t ARP = 0x0806;
+const uint16_t IPv4 = 0x0800;
+const uint16_t IPv6 = 0x86DD;
 
-template <typename T> std::vector<T> repeat(int size, T value) {
-  return std::vector<T>(size, value);
-}
+// IPv4
+const uint8_t ICMP = 0x1;
+const uint8_t TCP = 0x6;
+const uint8_t UDP = 0x11;
 
 #endif

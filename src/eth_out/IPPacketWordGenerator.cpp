@@ -36,12 +36,12 @@ axis_word IPPacketWordGenerator::get_next_word(const Addresses &loc,
 
   switch (word_cnt) {
   case 0:
-    ip_checksum.add(0x4500);
+    ip_checksum.add(IP_VERSION_AND_STD_IHL_AND_NO_SPECIAL);
     ip_pkt_protocol = UDP;
     ip_pkt_length = meta.payload_length + IP_AND_UDP_HEADER_BYTE_SIZE;
     ip_hop_count_and_protocol(15, 8) = IP_HOP_COUNT;
     ip_hop_count_and_protocol(7, 0) = ip_pkt_protocol;
-    return counted(0x45, word_cnt);
+    return counted(IP_VERSION_AND_STD_IHL, word_cnt);
     break;
   case 1: // DSCP + ECN
     ip_checksum.add(loc.ip_addr(31, 16));

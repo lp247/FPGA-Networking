@@ -31,8 +31,8 @@
 #define TEST_ITEST_HPP
 #pragma once
 
-#include "../constants.hpp"
 #include "Comparison.hpp"
+#include "color_codes.hpp"
 #include <vector>
 
 struct TestResult {

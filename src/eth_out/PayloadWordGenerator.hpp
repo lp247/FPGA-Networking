@@ -32,7 +32,7 @@
 #pragma once
 
 #include "../utils/axis_word.hpp"
-#include "../utils/wordio.hpp"
+#include "counted.hpp"
 #include <hls_stream.h>
 
 class PayloadWordGenerator {

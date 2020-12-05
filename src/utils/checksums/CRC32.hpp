@@ -34,6 +34,9 @@
 #include "IChecksum.hpp"
 #include "ap_int.h"
 
+const ap_uint<32> CRC32_RESIDUE = 0x1CDF4421;
+const ap_uint<32> CRC32_RESIDUE_INV_BREV = 0xC704DD7B;
+
 ap_uint<32> crc32_preview(const ap_uint<8> &next,
                           const ap_uint<32> &prev_crc32,
                           const ap_uint<3> &add_cnt);

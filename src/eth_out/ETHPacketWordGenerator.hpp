@@ -33,10 +33,10 @@
 
 #include "../utils/Addresses.hpp"
 #include "../utils/axis_word.hpp"
-#include "../utils/constants.hpp"
-#include "../utils/wordio.hpp"
+#include "../utils/protocols.hpp"
 #include "IPPacketWordGenerator.hpp"
 #include "Meta.hpp"
+#include "counted.hpp"
 #include <hls_stream.h>
 
 class ETHPacketWordGenerator {

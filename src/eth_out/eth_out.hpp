@@ -35,7 +35,6 @@
 #include "../utils/axis_word.hpp"
 #include "../utils/checksums/CRC32.hpp"
 #include "../utils/checksums/Checksum.hpp"
-#include "../utils/constants.hpp"
 #include "DataSender.hpp"
 #include "DataWordGenerator.hpp"
 #include "Meta.hpp"

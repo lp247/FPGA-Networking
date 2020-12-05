@@ -34,7 +34,6 @@
 #include "../utils/Optional.hpp"
 #include "../utils/axis_word.hpp"
 #include "../utils/checksums/CRC32.hpp"
-#include "../utils/constants.hpp"
 #include <ap_int.h>
 
 class FCSValidator {

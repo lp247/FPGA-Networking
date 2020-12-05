@@ -33,7 +33,7 @@
 
 #include "../utils/axis_word.hpp"
 #include "../utils/checksums/CRC32.hpp"
-#include "../utils/wordio.hpp"
+#include "counted.hpp"
 
 class FCSWordGenerator {
 public:

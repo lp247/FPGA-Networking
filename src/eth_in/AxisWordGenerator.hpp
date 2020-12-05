@@ -33,7 +33,6 @@
 
 #include "../utils/Optional.hpp"
 #include "../utils/axis_word.hpp"
-#include "../utils/constants.hpp"
 #include <ap_int.h>
 
 class AxisWordGenerator {

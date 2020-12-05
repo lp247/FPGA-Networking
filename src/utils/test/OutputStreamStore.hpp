@@ -32,7 +32,6 @@
 #pragma once
 
 #include "../Addresses.hpp"
-#include "../constants.hpp"
 #include "OutputStore.hpp"
 #include "StreamContainer.hpp"
 #include "TimedValue.hpp"

@@ -31,7 +31,7 @@
 #define TEST_COMPARISON_HPP
 #pragma once
 
-#include "../constants.hpp"
+#include "color_codes.hpp"
 #include <ap_int.h>
 #include <iostream>
 #include <regex>

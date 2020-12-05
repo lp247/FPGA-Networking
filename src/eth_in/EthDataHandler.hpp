@@ -34,7 +34,7 @@
 #include "../utils/Addresses.hpp"
 #include "../utils/Optional.hpp"
 #include "../utils/axis_word.hpp"
-#include "../utils/constants.hpp"
+#include "../utils/protocols.hpp"
 #include "IPPacketHandler.hpp"
 #include <ap_int.h>
 

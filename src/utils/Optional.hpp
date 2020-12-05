@@ -35,6 +35,8 @@
 
 enum OptionalEnum { Some, None };
 
+const Optional<axis_word> NOTHING = {None, {0, false, 0}};
+
 template <typename T> struct Optional {
 public:
   OptionalEnum type;

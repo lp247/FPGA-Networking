@@ -31,7 +31,6 @@
 #define TEST_OUTPUT_VALUE_STORE_HPP
 #pragma once
 
-#include "../constants.hpp"
 #include "OutputStore.hpp"
 #include <ap_int.h>
 #include <iostream>

@@ -38,6 +38,8 @@
 #include <ap_int.h>
 #include <hls_stream.h>
 
+const ap_uint<8> MAX_IPG_INDEX = 95;
+
 class DataSender {
 public:
   DataSender() : data_bit_pair_cnt(0), ipg_cnt(0) {}

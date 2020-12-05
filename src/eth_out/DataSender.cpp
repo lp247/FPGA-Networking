@@ -85,7 +85,7 @@ void DataSender::handle(ap_uint<2> &txd,
     write_data_bit_pair(word, data_bit_pair_cnt, txd, txen);
     break;
   case WAITING_FOR_INTER_PACKAGE_GAP:
-    if (ipg_cnt < 95) {
+    if (ipg_cnt < MAX_IPG_INDEX) {
       ipg_cnt++;
     } else {
       ipg_cnt = 0;
