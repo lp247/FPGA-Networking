@@ -35,6 +35,7 @@ void eth_out(hls::stream<axis_word> &data_in,
              const Addresses &loc) {
 #pragma HLS INTERFACE axis port = data_in
 #pragma HLS DISAGGREGATE variable = loc
+#pragma HLS PIPELINE II = 1
 
   static DataInputAnalyzer dataInputAnalyzer;
   static DataSender dataSender;
