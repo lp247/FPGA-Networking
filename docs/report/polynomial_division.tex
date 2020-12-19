@@ -1,0 +1,23 @@
+\section{Polynomial Division}\label{polynomial_division}
+This is an example of a polynomial division. The divisor is randomly chosen as
+\begin{equation}
+  x^4 + x + 1 = 1 \cdot x^4 + 0 \cdot x^3 + 0 \cdot x^2 + 1 \cdot x^1 + 1 \cdot x^0
+\end{equation}
+
+which can be represented as the number 0x13 / 0b10011 by setting the bits in the value according to the coefficients in the polynomial. The message divided by the divisor polynomially is randomly chosen as 0x5da / 0b10111011010.
+
+Polynomial division in this case then is done by aligning the divisor to the leftmost binary one of the message and XORing all aligned bits of the message and the divisor. This must be done as often as the resulting message is still longer than the divisor. This procedure is illustrated here:
+
+\begin{center}
+  \begin{tabular}{*{11}{@{}c@{}}}
+    1&0&1&1&1&0&1&1&0&1&0\\
+    1&0&0&1&1\\ \cline{1 - 5}
+    ~&~&1&0&0&0&1\\
+    ~&~&1&0&0&1&1\\ \cline{3 - 7}
+    ~&~&~&~&~&1&0&1&0&1\\
+    ~&~&~&~&~&1&0&0&1&1\\ \cline{6 - 10}
+    ~&~&~&~&~&~&~&1&1&0&0
+  \end{tabular}
+\end{center}
+
+The result 0b1100 / 0xC is the remainder of the division. This is the value used as checksum. The division result is omitted here, as it is of no use.

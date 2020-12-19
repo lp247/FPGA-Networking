@@ -7,3 +7,15 @@
 ip
 
 /**/target
+
+*.synctex.gz
+*.synctex(busy)
+*.lol
+*.out
+*.toc
+*.lof
+*.lot
+*.aux
+*.bbl
+*.blg
+*.pdf
