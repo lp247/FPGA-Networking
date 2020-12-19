@@ -1,6 +1,3 @@
-from typing import Callable
-import zlib
-
 # Ethernet crc32 magic number:       0xC704DD7B (11000111000001001101110101111011)
 # CRC32 divider polynomial (normal): 0x04C11DB7 (00000100110000010001110110110111)
 
@@ -102,7 +99,10 @@ import zlib
 # ------------------------------------------------------------------------------------------------------------------------------- | --- | -
 
 from typing import List
+from typing import Callable
+import zlib
 
+# === UTILS ====================================================================
 
 def print_hex_dec(number: int):
     print(hex(number), number)
@@ -159,6 +159,7 @@ def int_to_bool_list(num: int, num_digits: int) -> List[bool]:
 def bool_list_to_int(lst: List[bool]) -> int:
     return int("".join(map(lambda b: str(int(b)), lst[::-1])), 2)
 
+# === RESULT MODIFIERS =========================================================
 
 def inv_crc32_decorator(data: List[int], func: Callable[[List[int]], int]) -> int:
     mod_data: List[int] = data.copy()
@@ -178,8 +179,7 @@ def bytewise_bit_rev_crc32_decorator(data: List[int], func: Callable[[List[int]]
     crc = rev_word_bytes(func(data), 32)
     return crc
 
-
-# SERIAL CRC32
+# === CALCULATIONS: SERIAL CRC32 ===============================================
 
 def calc_vanilla_serial_crc32(data: List[int]) -> int:
     poly = 0x104C11DB7
@@ -207,8 +207,7 @@ def calc_bit_rev_inv_serial_crc32(data: List[int]) -> int:
 def calc_bytewise_bit_rev_inv_serial_crc32(data: List[int]) -> int:
     return bytewise_bit_rev_crc32_decorator(data, calc_bit_rev_inv_serial_crc32)
 
-
-# PARALLEL CRC32
+# === CALCULATIONS: PARALLEL CRC32 =============================================
 
 def calc_vanilla_parallel_crc32_step(data: int, prev: int) -> int:
     d: List[bool] = int_to_bool_list(data, 8)
@@ -282,8 +281,7 @@ def calc_bit_rev_inv_parallel_crc32(data: List[int]) -> int:
 def calc_bytewise_bit_rev_inv_parallel_crc32(data: List[int]) -> int:
     return bytewise_bit_rev_crc32_decorator(data, calc_bit_rev_inv_parallel_crc32)
 
-
-# ZLIB CRC32
+# === CALCULATIONS: ZLIB CRC32 =================================================
 
 def calc_bit_rev_inv_zlib_crc32(data: List[int]) -> int:
     return zlib.crc32(bytes(data)) & 0xFFFFFFFF
@@ -300,6 +298,7 @@ def calc_inv_zlib_crc32(data: List[int]) -> int:
 def calc_vanilla_zlib_crc32(data: List[int]) -> int:
     return inv_crc32_decorator(data, calc_inv_zlib_crc32)
 
+# === GETTING VALUES ===========================================================
 
 lst: List[int] = hex_string_to_int_list('')
 
