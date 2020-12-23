@@ -76,11 +76,11 @@ int main() {
   std::vector<EthInTest<NUM_CYCLES> > tests;
   int errors = 0;
 
-  const Addresses loc{0xbbbbbbbbbbbb, 0x22222222, 0x0035};
-  const Addresses src{0x999999999999, 0x11111111, 0xde60};
+  const Addresses loc = {0xfedcba987654, 0x98765432, 0x0035};
+  const Addresses src = {0x123456789abc, 0x13579bdf, 0xde60};
 
-  const Addresses real_loc{0xaaaaaaaaaaaa, 0xa9fecd01, 0x0035};
-  const Addresses real_src{0xd89ef3fbcf15, 0xa9fecda9, 0xe5b8};
+  const Addresses real_loc = {0xaaaaaaaaaaaa, 0xa9fecd01, 0x0035};
+  const Addresses real_src = {0xd89ef3fbcf15, 0xa9fecda9, 0xe5b8};
   std::vector<ap_uint<2> > real(
       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
        1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,

@@ -74,8 +74,8 @@ int main() {
   std::vector<EthOutTest<NUM_CYCLES> > tests;
   int errors = 0;
 
-  const Addresses loc = {0x999999999999, 0x11111111, 0xde60};
-  const Addresses dst = {0xbbbbbbbbbbbb, 0x22222222, 0x0035};
+  const Addresses loc = {0x123456789abc, 0x13579bdf, 0xde60};
+  const Addresses dst = {0xfedcba987654, 0x98765432, 0x0035};
 
   std::vector<ap_uint<2> > packet_d(UDPFrame(loc, dst, {0xAA}));
   std::vector<ap_uint<1> > packet_en(288, 1);

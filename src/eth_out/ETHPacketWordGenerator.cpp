@@ -36,40 +36,40 @@ axis_word ETHPacketWordGenerator::get_next_word(
   switch (word_cnt) {
   case 0:
     frm_protocol = IPv4;
-    return counted(meta.dst_mac_addr(7, 0), word_cnt);
-    break;
-  case 1:
-    return counted(meta.dst_mac_addr(15, 8), word_cnt);
-    break;
-  case 2:
-    return counted(meta.dst_mac_addr(23, 16), word_cnt);
-    break;
-  case 3:
-    return counted(meta.dst_mac_addr(31, 24), word_cnt);
-    break;
-  case 4:
-    return counted(meta.dst_mac_addr(39, 32), word_cnt);
-    break;
-  case 5:
     return counted(meta.dst_mac_addr(47, 40), word_cnt);
     break;
+  case 1:
+    return counted(meta.dst_mac_addr(39, 32), word_cnt);
+    break;
+  case 2:
+    return counted(meta.dst_mac_addr(31, 24), word_cnt);
+    break;
+  case 3:
+    return counted(meta.dst_mac_addr(23, 16), word_cnt);
+    break;
+  case 4:
+    return counted(meta.dst_mac_addr(15, 8), word_cnt);
+    break;
+  case 5:
+    return counted(meta.dst_mac_addr(7, 0), word_cnt);
+    break;
   case 6:
-    return counted(loc.mac_addr(7, 0), word_cnt);
+    return counted(loc.mac_addr(47, 40), word_cnt);
     break;
   case 7:
-    return counted(loc.mac_addr(15, 8), word_cnt);
-    break;
-  case 8:
-    return counted(loc.mac_addr(23, 16), word_cnt);
-    break;
-  case 9:
-    return counted(loc.mac_addr(31, 24), word_cnt);
-    break;
-  case 10:
     return counted(loc.mac_addr(39, 32), word_cnt);
     break;
+  case 8:
+    return counted(loc.mac_addr(31, 24), word_cnt);
+    break;
+  case 9:
+    return counted(loc.mac_addr(23, 16), word_cnt);
+    break;
+  case 10:
+    return counted(loc.mac_addr(15, 8), word_cnt);
+    break;
   case 11:
-    return counted(loc.mac_addr(47, 40), word_cnt);
+    return counted(loc.mac_addr(7, 0), word_cnt);
     break;
   case 12:
     return counted(frm_protocol(15, 8), word_cnt);
