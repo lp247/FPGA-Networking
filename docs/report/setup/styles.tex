@@ -9,45 +9,17 @@
 \setkomafont{paragraph}{\normalfont\bfseries\normalsize}
 \setkomafont{subparagraph}{\normalfont\normalsize}
 
-% === LISTINGS =================================================================
-
-\lstdefinestyle{lststyle}{
-  frame=b,
-    rulecolor=\color{gray},
-    xleftmargin=3.4pt,
-    xrightmargin=3.4pt,
-    lineskip=2pt,
-  language=C++,
-  basicstyle=\small\ttfamily,
-  columns=flexible,
-  numbers=left,
-    numberstyle=\small\ttfamily\color{gray},
-    numbersep=8pt,
-  commentstyle=\itshape\color{gray}
-}
-
-\lstdefinestyle{inlinelststyle}{
-  frame=trbl,
-    rulecolor=\color{gray},
-    xleftmargin=3.4pt,
-    xrightmargin=3.4pt,
-    lineskip=2pt,
-  basicstyle=\small\ttfamily,
-  columns=flexible,
-    frameround=tttt,
-  nolol=true
-}
-
-% Define formats for captions and its font - used for the caption of code
-% listings (white font on grey background)
-\DeclareCaptionFont{whitefont}{\color{white}}
-\DeclareCaptionFormat{listingcaption}{\colorbox{gray}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{#1#2#3}}}
-
-% Set the caption format for listings (use of above defined formats)
-\captionsetup[lstlisting]{
-  format=listingcaption,
-  labelfont=whitefont,
-  textfont=whitefont
+\usemintedstyle{default}
+\definecolor{lstbg}{rgb}{0.95,0.95,0.95}
+\definecolor{linenumber}{rgb}{0.6,0.6,0.6}
+\renewcommand{\theFancyVerbLine}{\textcolor{linenumber}{\normalsize\arabic{FancyVerbLine}}}
+\SetupFloatingEnvironment{listing}{name=Source Code}
+\SetupFloatingEnvironment{listing}{listname=List of Source Codes}
+\captionsetup[listing]{
+  position=top,
+  justification=raggedright,
+  singlelinecheck=false,
+  labelformat=simple
 }
 
 \newcommand{\source}[1]{\caption*{\textbf{Source:} {#1}} }

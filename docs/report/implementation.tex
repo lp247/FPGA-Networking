@@ -3,7 +3,7 @@
 \subsection{Setup}
 \subsubsection{Hardware}
 For development the Digilent Nexys-A7-100T development board has been used. It uses the Xilinx Artix-7 chip XC7A100T-1CSG324C. Reference manual for the development board can be found in \cite{digilent:nexys-a7-ref-manual}.
-The board owns an ethernet PHY chip, model LAN8720A, manufacturer SMSC. This PHY is used to transmit packets over ethernet. For pin connections to the FPGA consult the reference manual of the development board (\cite{digilent:nexys-a7-ref-manual}). For general information about the ethernet PHY, consult its datasheet (\cite{smsc:lan8720a}).
+The board owns an ethernet PHY chip, model LAN8720A, manufacturer SMSC. This PHY is used to implement the physical layer of the OSI model. For pin connections to the FPGA consult the reference manual of the development board (\cite{digilent:nexys-a7-ref-manual}). For general information about the ethernet PHY, consult its datasheet (\cite{smsc:lan8720a}).
 
 \subsubsection{Programming Environment}
 For FPGA programming there are two programs to be used:
@@ -19,7 +19,7 @@ The whole code is hosted on GitHub:
 \end{center}
 In this project, C++ has been used as high level language and two modules have been created:
 \begin{itemize}
-  \item \textbf{Inbound packet handler:} This block reads incoming data from the RXD pins of the ethernet PHY and bundles the data to octets. Those octets are stored and checks are made, whether the checksums and addresses are correct and the packet is a UDP packet. Currently, only UDP packets are supported. If everything is correct, the UDP payload data is passed to the blocks output to be used by another block via an AXI-Stream port.
+  \item \textbf{Inbound packet handler:} This block reads incoming data from the RXD pins of the ethernet PHY and bundles the data to octets. Those octets are stored and checks are made, whether the checksums and addresses are correct and whether the packet is a UDP packet. Currently, only UDP packets are supported. If everything is correct, the UDP payload data is passed to the blocks output to be used by another block via an AXI-Stream port.
   \item \textbf{Outbound packet handler:} This blocks reads incoming data from an AXI-Stream port, wraps this data into a UDP packet (including IP and MAC packet) and passes it to the ethernet PHY pins TXD to be sent over ethernet.
 \end{itemize}
 Both handlers have been connected to each other, so that an echo server is established. In the future when other modules want to work with the incoming data, those modules have to be connected in between the inbound handler and the outbound handler.
@@ -33,10 +33,10 @@ A schematic of the connections can be seen in figure \ref{figure:schematic}.
 
 \subsection{Run}
 \begin{enumerate}
-  \item \textbf{Create ethernet handler:} Run \texttt{src/run.tcl} located in the root directory of the github project in the Vitis HLS Command Line. At the end an IP directory is created, which contains both ethernet handlers in a form usable by Vivado.
-  \item \textbf{Create the logic:} Create a new Vivado project and implement the schematic shown in figure \ref{figure:schematic}. Choose the addresses of the board as you need. UDP port and MAC address are not important, but IP address must be adjusted to match your connections subnet (first 16 bits of IP address). Otherwise the computer won't send any packets. Use both modules from step 1. To use them, create a new IP repository and add both modules to it.
+  \item \textbf{Create ethernet handler:} Run \texttt{src/ethernet_handlers/build.tcl} of the github project within the Vitis HLS Command Line. In the end an IP directory is created, which contains both ethernet handlers in a form usable by Vivado.
+  \item \textbf{Create the logic:} Create a new Vivado project and implement the schematic shown in figure \ref{figure:schematic}. Choose the addresses of the board as you need. UDP port and MAC address are not important, but IP address must be adjusted to match your connections subnet (first 16 bits of IP address). Otherwise the computer won't send any packets. Use both modules from step 1. To use them, create a new IP repository and add both modules to it. The constants \texttt{start} and \texttt{reset\_n} must be set to \texttt{1}.
   \item \textbf{Connection:} Connect the FPGA board with a computer via ethernet cable. The link status LED of the ethernet port should blink after connecting.
   \item \textbf{Set ARP entry:} ARP is a protocol mapping IP addresses to MAC addresses. In order to be able to send IP packets, both have to be known. ARP is not implemented on the board, therefore the entry has to be added manually. In windows this is done by executing \texttt{arp -s <IP\_ADDR> <MAC\_ADDR>} in a command line. For UNIX systems please consult the internet.
   \item \textbf{Program the board:} Run synthesis, implementation and bitstream generation of the echo server and program the board.
-  \item \textbf{Send and receive packets:} Run the code shown in listing \ref{lst:send_and_receive} to send a byte and receive the same byte.
+  \item \textbf{Send and receive packets:} Run the code udp client written in rust in the subdirectory \texttt{src/udp\_client} with the command \texttt{cargo run}. In order to run it, rust and cargo has to be installed. This program sends a byte and receives a byte, prints both to the console and measures the time between sending and receiving. IP addresses and UDP port must be adjusted for the local machine and the FPGA board.
 \end{enumerate}

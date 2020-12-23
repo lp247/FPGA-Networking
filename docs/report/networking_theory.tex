@@ -1,23 +1,41 @@
-\section{Networking Theory}
+\section{Networking Theory and Protocols}
+In a multi-network system consisting of multiple edges with different transmission mediums and nodes with different services running on it, communication between different entities in the network happens on different levels. Communication on the lowest levels is characterized by simple byte transmissions over a given medium between two or more directly connected nodes of the network while on the highest levels it is characterized by complex dialogs of data exchange between different applications running on different nodes in different networks. Every new layer in this hierarchy adds a level of abstraction on top of all layers below to handle evermore complex kinds of communication between entities in the network.
 
-\subsection{Raw Transmission of Bytes over Ethernet}
+The following section will give a short introduction into the widely used OSI model of this layering scheme. The subsequent sections will then explore the various technologies used in this project, which implement some of those layers.
 
-\subsubsection{Ethernet PHY Chip}
-For transmission of raw data over ethernet a RMII 10/100 MHz ethernet transceiver (also called ethernet phy) is used, which is soldered onto the used development board and connected to the FPGA chip. Its model number is LAN8720A.
+\subsection{Open Systems Interconnection (OSI) Model}
+The Open Systems Interconnection (OSI) model is the most widely used model of the networking communication layers. It defines seven distinct layers of increasing abstraction, where each layer handles the implementation of a special kind of communication system by utilizing the layers below it. The seven layers of the OSI model from bottom to top are:
+\begin{enumerate}
+  \item \texttt{Physical Layer:} Implements the raw transmission of bits over a medium shared by two or more link partners. It only handles direct connections between those link partners over wired (copper cables, fiber cables, etc.) or wireless (radio signals) connection methods and ensures, that transmitted information reaches all link partners without loss of information.
+  \item \texttt{Data Link Layer:} Implements the safe transmission of data over a medium shared by two or more link partners. Based on the physical layer it wraps transmissions in packets and assigns addresses and checksums to the transmitted data to ensure, that data is transmitted without undetectable errors to the intended recipient.
+  \item \texttt{Network Layer:} Implements routing of packets through multiple networks. Different networks must be connected by routers. It uses special network addresses for routing. It uses the data link layer.
+  \item \texttt{Transport Layer:} Implements communication between different applications or services on different entities in connected networks. It can handle connections and provides additional reliability methods and flow control. It uses the network layer.
+  \item \texttt{Session Layer:} Implements communication in sessions between entities. It uses the transport layer.
+  \item \texttt{Presentation Layer:} Implements data format conversions between the lower layers and the application layer.
+  \item \texttt{Application Layer:} Represents the actual applications running on nodes in the network. Those applications can communicate with other applications on other nodes in the network by utilizing all other layers below.
+\end{enumerate}
+Although the OSI model gives a useful model for the network communication layers, in reality those layers are not strictly implemented separately, since optimizations between those layers often require them to be handled together.
 
-Its purpose is handling the low-level data handling and communication over ethernet, which includes
+\subsection{Fast Ethernet (IEEE 802.3u)}
+Fast ethernet, standardized by IEEE as 802.3u, is a standard located in the IEEE 802.3 working group for wired ethernet (\cite{ieee:802.3}) which is itself located in the IEEE 802 family of standars for networks carrying variable-size packets (\cite{wikipedia.org:ieee_802}). Specifically, 802.3u establishes various standards for wired communication over a network in a transmission speed of 100 Mbit/s and twisted-pair or fiber cables as transmission medium. Fast ethernet over twisted-pair cables, which is the most common connection, is called 100BASE-TX and requires network cables of category Cat-5 or better.
+The target of the 802.3u standard can be divided in two parts. The first one regarding the low level part of ethernet describes, how transmission of bits over the given medium is generally handled with no regard of the structure of the transmitted data and corresponds to the physical layer (layer 1) of the OSI model. The second one regarding the higher level part of ethernet describes, how data is being exchanged between two link partners and corresponds to the data link layer (layer 2) of the OSI model. Those two parts are generally implemented by different hardware, which are connected via the Media Independent Interface (MII), which is also part of 802.3u, or one of its improvements (RMII, GMII, etc.). The following sections will provide further information about the two parts and the connecting interface.
+
+\subsubsection{Low Level Transmission of Bits}
+This part corresponds to the OSI physical layer (layer 1).
+
+Low level transmission encompasses all tasks to be performed to successfully transmit single bits over a given medium. These tasks can be divided into the following categories \cite{smsc:lan8720a}:
 \begin{itemize}
-  \item Decoding incoming data after receiving
-  \item Encoding outgoing data before sending
-  \item Negotiation of used speed or features with connection partner
+  \item Encoding of outgoing and decoding of incoming data with a format suitable for transmission,
+  \item Feature negotiation between link partners (transmission speed, half or full duplex mode, etc.),
+  \item Recovery of incoming data from signals with phase and amplitude distortions due to disturbances while transmission.
 \end{itemize}
 
-More information about the LAN8720A can be found in its datasheet (\cite{smsc:lan8720a}).
+Usually, the physical layer is implemented by a chip commonly called a "PHY", meaning it handles the tasks of the physical layer.
 
 \subsubsection{Reduced Media Independent Interface}
-The Media Independent Interface (MII) and all its advanced versions like the used Reduced Media Independent Interface (RMII) are an established standard interface for connecting the Media Access Control (MAC) to an ethernet PHY. This ensures, that MACs need not to be modified, if another transmission medium with another PHY chip is required to be used.
+The Media Independent Interface (MII) and all its advanced versions like the used Reduced Media Independent Interface (RMII) are an established standard interface for connecting the Media Access Control (MAC) to an ethernet PHY. The MAC is defined by this relationship. This ensures, that MACs need not to be modified, if another transmission medium is required to be used.
 
-The Medium Access Control is defined as any logic connected to a PHY over such a Media Independent Interface.
+In this project, the RMII has been used, therefore only this version will be described here.
 
 The signals defined in the specification for the RMII are listed in table \ref{table:rmii_signals}. REF\_CLK is the clock signal for data transmission and can be either a 50 MHz clock for 100 Mbit/s or a 5 MHz clock for 10 Mbit/s transmission speed. RXD is the data signal for incoming data. The PHY will set it, if it receives the next two bits of data. Data is valid, if CRS\_DV is asserted. If there has been an error while receiving the current two bits, RX\_ER is asserted. Outgoing data must be set at TXD two bits per clock cycle. The PHY will send those two bits out if TX\_EN is asserted. Transmissions of data of more than two bits are handled by consecutively handling all byte pairs of the message. \textbf{Important! TXD[0] is the first transmitted bit, RXD[0] is the first received bit.}
 
@@ -37,11 +55,12 @@ The signals defined in the specification for the RMII are listed in table \ref{t
   \label{table:rmii_signals}
 \end{table}
 
-\subsection{Transmission of Data via Protocol Packets}
-The previous section explained, how raw data bits can be transmitted over ethernet connections utilizing an ethernet PHY chip and its reduced media independent interface. But in reality data is transmitted in packets and not in a raw form. These packets are called Ethernet packets or MAC packets and are part of the ethernet standardization IEEE 802.3. These packets enable different features such as error detection via checksums, sub-protocol multiplexing, routing and more. Information needed for these features is stored in headers of these packets and packets of sub-protocols can be stored within the data field of the parent protocols packet.
+\subsubsection{Higher Level Transmission of Data}
+This part corresponds to the OSI data link layer (layer 2).
 
-\subsubsection{Media Access Control Packets}
-MAC packets are the lowest level packets. The structure of an ethernet packet is shown in figure~\ref{figure:mac_packet}. The fields of a MAC packet are:
+It defines that data is transmitted in packets and how those packets are shaped and handled upon receiving.
+
+MAC packets are the lowest level packets. The structure of a MAC packet is shown in figure~\ref{figure:mac_packet}. The fields of a MAC packet are:
 \begin{itemize}
   \item \textbf{Preamble:} Sequence 10101010 10101010 10101010 10101010 10101010 10101010 10101010. \textbf{This sequence is transmitted from left to right.}
   \item \textbf{Start of Frame Delimiter (SFD):} Sequence 10101011. \textbf{This sequence is transmitted from left to right.}
@@ -55,56 +74,17 @@ MAC packets are the lowest level packets. The structure of an ethernet packet is
 
 Between packets, there must be a transmission pause of 12 octets.
 
-\begin{figure}[h]\label{figure:mac_packet}
+\begin{figure}[h]
   \includegraphics[width=\textwidth]{assets/mac_frame.png}
   \caption[Structure of an ethernet packet]{Structure of an ethernet packet. Field names are transmitted consecutively from top to bottom. TX\_EN is asserted while transmitting all fields except IPG.}
   \source{IEEE Standard for Ethernet~\cite{ieee:802.3}, page 119}
+  \label{figure:mac_packet}
 \end{figure}
 
-% \begin{table}[]
-%   \centering
-%   \begin{tabular}{|c|c|c|}
-%     \hline
-%     \textbf{Field name} & \textbf{\begin{tabular}[c]{@{}c@{}}Size\\ (bits)\end{tabular}} & \textbf{Description} \\ \hline
-%     Preamble & 56 & 7 bytes of 0xAA / 0b10101010 \\ \hline
-%     Start of Frame Delimiter & 8 & 0xAB / 0b10101011 \\ \hline
-%     MAC Destination Address & 48 & Packet destination address \\ \hline
-%     MAC Source Address & 48 & Packet generator address \\ \hline
-%     EtherType & 16 & Protocol of packet in payload \\ \hline
-%     Payload & 46 - 1500 bytes & \begin{tabular}[c]{@{}c@{}}Packet payload data\\ (Includes higher level protocol\\ packets, e.g. IP packets)\end{tabular} \\ \hline
-%     Frame Check Sequence & 32 & \begin{tabular}[c]{@{}c@{}}Packet checksum based\\ on CRC32 algorithm\end{tabular} \\ \hline
-%     Interpacket gap (IPG) & 96 & \begin{tabular}[c]{@{}c@{}}Min. space between packets\\ (No Transmission)\end{tabular} \\ \hline
-%   \end{tabular}
-%   \caption[Structure of an ethernet packet]{Structure of an ethernet packet. Field names are transmitted consecutively from top to bottom. TX\_EN is asserted while transmitting all fields except IPG.}
-%   \label{table:ethernet_packet}
-% \end{table}
+\subsection{Internet Protocol Version 4 (RFC 791)}
+This protocol corresponds to the OSI network layer (layer 3).
 
-\subsubsection{IP Packets}
-The IP protocol packet is a second level packet used for transmitting data over ethernet from one device to another utilizing 32 bit addresses. The structure of an IP packet is shown in table \ref{table:IP_packet}. The fields of an IP packet are:
-
-% \begin{table}[]
-%   \centering
-%   \begin{tabular}{|c|c|c|}
-%     \hline
-%     \textbf{Field name} & \textbf{\begin{tabular}[c]{@{}c@{}}Size\\ (bits)\end{tabular}} & \textbf{Description} \\ \hline
-%     Version & 4 & IP Version \\ \hline
-%     IHL & 4 & Header length in 32 bit words \\ \hline
-%     DSCP & 6 & Special additional options \\ \hline
-%     ECN & 2 & Notification for network congestion \\ \hline
-%     Total Length & 16 & Total length of IP packet \\ \hline
-%     Identification & 16 & Unique ID \\ \hline
-%     Flags & 3 & \begin{tabular}[c]{@{}c@{}}bit 0: reserved / always 0\\ bit 1: No Fragment\\ bit 2: More Fragments\end{tabular} \\ \hline
-%     Fragment Offset & 13 & Offset of fragment in whole message \\ \hline
-%     TTL & 8 & Time to live \\ \hline
-%     Protocol & 8 & Protocol of packet in payload \\ \hline
-%     Header Checksum & 16 & Checksum of header without payload \\ \hline
-%     Source IP Address & 32 & Packet source address \\ \hline
-%     Destination IP Address & 32 & Packet destination address \\ \hline
-%     Options & 0 - 320 & Optional options - Used if IHL \textgreater~4 \\ \hline
-%   \end{tabular}
-%   \caption[Structure of an IP packet]{Structure of an IP packet. Field names are transmitted consecutively from top to bottom.}
-  
-% \end{table}
+The IP protocol packet is used for routing packets over ethernet from one device to another over multiple networks utilizing 32 bit addresses. The structure of an IP packet is shown in table \ref{table:IP_packet}. The fields of an IP packet are:
 
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
@@ -154,8 +134,10 @@ The IP protocol packet is a second level packet used for transmitting data over 
   \item \textbf{Options:} If IHL is bigger than 5, additional options are available. There are up to 20 additional bytes available, if IHL is set to its maximum value of 15. Those options are optional and can be used for custom purposes.
 \end{itemize}
 
-\subsubsection{UDP Packets}
-The UDP protocol is a third level protocol used for transmitting data over ethernet from one device to another utilizing 16 bit ports. The structure of a UDP packet is shown in table \ref{table:UDP_packet}. The fields of an UDP packet are:
+\subsubsection{User Datagram Protocol (RFC 768)}
+This part corresponds to the OSI transport layer (layer 4).
+
+The UDP protocol is used for transmitting data over ethernet from a service or application running on one device to a service or application running on another device utilizing 16 bit ports. The structure of a UDP packet is shown in table~\ref{table:UDP_packet}. The fields of an UDP packet are:
 
 \begin{sidewaystable}
   \centering
@@ -186,7 +168,7 @@ The UDP protocol is a third level protocol used for transmitting data over ether
 \end{itemize}
 
 \subsection{Checksums}
-Since checksums are an important tool to identify unwanted errors within a packet, most protocols make use of a checksum in its header. There are two kinds of checksums used in the networking context, which will be covered in depth in the following two sections.
+Since checksums are an important tool to identify errors within a packet, most protocols make use of a checksum in its header. There are two kinds of checksums used in the networking context, which will be covered in depth in the following two sections.
 
 \subsubsection{Standard Header Checksum}\label{section:basic_checksum}
 
@@ -227,7 +209,7 @@ The whole calculation is based on polynomial arithmetic mod 2 \cite{wikipedia.or
 \begin{equation}
   x^{32} + x^{26} + x^{23} + x^{22} + x^{16} + x^{12} + x^{11} + x^{10} + x^{8} + x^{7} + x^{5} + x^{4} + x^{2} + x + 1.
 \end{equation}
-Every bit in the value denotes the coefficient of the term x to the power of the bit index. An example illustrating polynomial division is shown in \ref{polynomial_division}. For more comprehensive examples and descriptions see \cite{wikipedia.org:crc} or \cite{zlib.net:crc}.
+Every bit in the value denotes the coefficient of the term x to the power of the bit index. An example illustrating polynomial division is shown in appendix \ref{polynomial_division}. For more comprehensive examples and descriptions see \cite{wikipedia.org:crc} or \cite{zlib.net:crc}.
 
 The frame check sequence is a slightly modified version of this polynomial division. The single steps for calculating the frame check sequence are the following:
 \begin{enumerate}
@@ -243,7 +225,5 @@ After receiving a packet the frame check sequence is calculated over the whole e
 \paragraph{What else to consider:}
 \begin{itemize}
   \item Since data bytes are transmitted least significant bit first over ethernet, every byte must be reversed after receiving and before CRC32 calculation.
-  \item The above mentioned approach to calculating the frame check sequence has two major drawbacks in hardware implementations. Firstly, every clock cycle only one bit can be handled and secondly at the end there must be 32 bits added. Therefore different approaches have been developed providing a possibility to calculate the fcs with more bits at once fed into
-  
-  FCS calculation usually requires adding 32 binary zeroes to the message. This can result in poor performance in hardware, if the checksum is calculated continuously while receiving data. Therefore, in this project another solution has been used, which does not require adding zeroes and can be calculated with only binary logic operations. The logic behind it is described in 
+  \item The above mentioned approach to calculating the frame check sequence has two major drawbacks in hardware implementations. Firstly, every clock cycle only one bit can be handled and secondly there must be 32 bits added to the end of the message. Therefore different approaches have been developed providing possibilities to calculate the fcs with more bits at once and without the need to add 32 bits to the end of the message. The theory behind it is shown in \cite{parallel_crc}. There is even an online generator for the logic (\cite{parallel_crc_generator}).
 \end{itemize}

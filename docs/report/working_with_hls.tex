@@ -1,11 +1,14 @@
-\section{Working with HLS}
+\section{Working with Vitis HLS}
 This project is done with the Vitis HLS framework. HLS stands for high-level synthesis, which is the synthesis of hardware logic by means of a higher level language than VHDL / Verilog. C++, C and SystemC are available high level languages.
-By utilizing high level languages the Vitis HLS framework can assist in generating complex logic, which would require much more work if done in VHDL or Verilog. This is very similar to the relationship of C and Assembly, as the higher level language adds a layer of abstraction. Also, the high level languages in Vitis HLS allow different very useful libraries, which abstract many more functions even more.
+
+By utilizing high level languages the Vitis HLS framework can assist in generating complex logic, which would require much more work if done in VHDL or Verilog. This is very similar to the relationship of C and Assembly, as the higher level language adds a layer of abstraction. Also, Vitis HLS provides additional libraries for the high level languages helping in tasks such as mathematical functions, linear algebra and special data types.
+
 The next sections will give a short introduction into the workflow of the Vitis HLS framework and into writing a hardware module with it.
+
 In this project C++ has been used, so any further explanations will be done in the context of C++ programming.
 
 \subsection{Vitis HLS Workflow}
-The Vitis HLS workflow contains several steps for creating and testing hardware modules. The following sections will provide the workflow step by step. Xilinx itself provides a rich tutorial on how to navigate the Xilinx HLS ecosystem (\cite{xilinx:hls_tutorial}). The sections here will build on this tutorial and add noteworthy information and refer to the tutorial where appropriate.
+The Vitis HLS workflow contains several steps for creating and testing hardware modules. The following sections will provide the workflow step by step. Xilinx itself provides a rich tutorial on how to navigate the Xilinx HLS ecosystem (\cite{xilinx:hls_tutorial}). The sections here will build on this tutorial, add noteworthy information and refer to the tutorial where appropriate.
 
 \subsubsection{Create a Vitis HLS Project}
 To create a new project refer to \cite{xilinx:hls_tutorial}, page 10 onwards. There it is well explained how to set up a new project.
@@ -13,7 +16,9 @@ To create a new project refer to \cite{xilinx:hls_tutorial}, page 10 onwards. Th
 \subsubsection{Write the Hardware Module}
 First of all the hardware module must be created. The hardware module is described by a single function and is contained in a single \texttt{.hpp} and \texttt{.cpp} file pair. Used functions and classes in this file can be extracted into several separate files. An example of a simple module adding two inputs is shown in listing~\ref{lst:example_hardware_module}. The module generated out of this function will have two 8-bit wide inputs \texttt{i\_a} and \texttt{i\_b} and one 8-bit wide output \texttt{o} / \texttt{return}. More complex modules can be build on this. For more information on general coding guidelines see section \ref{section:cpp_coding}.
 
-\begin{lstlisting}[caption=Example Hardware Module,style=lststyle,label=lst:example_hardware_module]
+\begin{listing}
+  \caption{Example Hardware Module Implementation}
+  \begin{minted}[linenos=true,bgcolor=lstbg]{c++}
 // sum.hpp
 #include <ap_int.h>
 
@@ -31,12 +36,16 @@ void sum(ap_uint<8> &i_a, ap_uint<8> &i_b, ap_uint<8> &o) {
 // ap_uint<8> sum(ap_uint<8> &i_a, ap_uint<8> &i_b) {
 //   return i_a + i_b;
 // }
-\end{lstlisting}
+  \end{minted}
+  \label{lst:example_hardware_module}
+\end{listing}
 
 \subsubsection{Write Tests for the Hardware Module}
 Alongside writing the hardware module itself, a test for this hardware module has to be written as well to ensure the hardware module is working as intended. This is a single \texttt{.cpp} file with a single \texttt{main} function in it. The code in it must call the hardware modules C++ function with different custom test values and compare the output to the expected output. If all outputs are correct, the \texttt{main} function must return the integer value \texttt{0}. Otherwise if there are errors, the \texttt{main} function must return a non-zero integer value. An example test function can be found in listing \ref{lst:example_test}.
 
-\begin{lstlisting}[caption=Example Test,style=lststyle,label=lst:example_test]
+\begin{listing}
+  \caption{Example Test}
+  \begin{minted}[linenos=true,bgcolor=lstbg]{c++}
 #include "sum.hpp"
 #include <ap_int.h>
 
@@ -62,7 +71,9 @@ int main() {
   }
   return 0;
 }
-\end{lstlisting}
+  \end{minted}
+  \label{lst:example_test}
+\end{listing}
 
 \subsubsection{Run C Simulation}
 C simulation executes your test file and if it returns an integer \texttt{0}, the test will pass. If your test does not pass, the code has to be debugged. This can be done with the integrated debugger. Instructions on how to run and debug C simulation can be found in \cite{xilinx:hls_tutorial} on page 44 onwards.
@@ -72,10 +83,11 @@ If C simulation passes, the code can be synthesized into VHDL / Verilog code. Th
 
 \subsubsection{C/RTL Cosimulation}
 C/RTL cosimulation checks, whether the synthesized module is functionally equivalent to the written C++ code. This is done by generating test vectors out of the C++ test function and running an RTL simulation of the generated module while feeding those test vectors into it. The output of the simulated module is the also stored in test vectors, which are passed back to the C++ test function. Now like in the C simulation step, the C++ test function checks whether the output matches the expected values and if they do, the C/RTL cosimulation passes.
+
 It is also possible to show the simulated signals of the module in Vivado for better debugging. How to enable this option and how to do C/RTL cosimulation is explained well in the HLS Tutorial (\cite{xilinx:hls_tutorial}) on page 159 onwards or in the HLS user guide (\cite{xilinx:hls_bible}) on page 177 onwards.
 
 \subsubsection{Export RTL}
-If all previous tests have passed, the generated RTL can be exported as IP. This IP can then be imported and used within a Vivado project. To export the IP click ''Export RTL'' in the menu bar. In the opening dialog keep the settings as they are and specify a location for the generated files. After completing exporting, a zip file containing the RTL files is saved at the specified location. This file can now be added in Vivado for use. Further information on exporting RTL can be found in the HLS user guide (\cite{xilinx:hls_bible}) on page 191 onwards.
+If all previous tests have passed, the generated RTL can be exported. This exported RTL can then be imported and used within a Vivado project. To export the RTL click ''Export RTL'' in the menu bar. In the opening dialog keep the settings as they are and specify a location for the generated files. After completing exporting, a zip file containing the RTL files is saved at the specified location. This file can now be added in Vivado for use. Further information on exporting RTL can be found in the HLS user guide (\cite{xilinx:hls_bible}) on page 191 onwards.
 
 \subsection{C++ Architecture}\label{section:cpp_coding}
 When programming hardware modules in Vitis HLS there are several things which have to be considered in order to successfully program such hardware modules with C++. There are C++ features, which are not supported, some language constructs, which work a little bit different in the generated hardware and simply different usable libraries for specific hardware tasks. The following sections will give a broad overview over all those aspects. Many more information on C++ programming can be found in the HLS user guide (\cite{xilinx:hls_bible}) on page 279 onwards.
@@ -98,14 +110,14 @@ General tips on testing the hardware modules.
 \begin{itemize}
   \item In the official guides and tutorials it is always mentioned to use files with inputs and outputs for testing and compare output files with reference files. But this is not needed. The only requirement is, that the testing function is returning \texttt{0} for successful tests or another integer for unsuccessful tests.
   \item When going from C simulation to C/RTL cosimulation there may be differences in the output times when using buffers (FIFO) internally. In the C simulation reading from and writing to those buffers happen simultaneously but in hardware both actions can only occur in different cycles leading to larger latency of the hardware compared to software. Tests should account for this change in latency if timing is tested as well.
-  \item If your module is generated but does not work correctly in the final product, Integrated Logic Analyzers (ILA) are a true friend.
+  \item If your module is generated but does not work correctly in the final product, Integrated Logic Analyzers (ILA) are very useful.
 \end{itemize}
 
 \subsubsection{Optimizations}
 General tips on optimizing the logic.
 \begin{itemize}
-  \item Besides the pragmas for ports pragmas also offer other kinds of optimizations, especially for loop pipelining. A complete list of all available pragmas can be found in the online documentation (\cite{xilinx:online_docs}) under \texttt{Vitis HLS > Vitis HLS Command Reference > HLS Pragmas}.
-  \item The compiler generates a tree of computations out of the code. The length of the tree determines the run time of the calculation in a clock cycle. If the tree is too big, the calculations take too long and the tree has to be splitted or the clock frequency decreased.
+  \item Besides the pragmas for ports, they also offer other kinds of optimizations, especially for loop pipelining. A complete list of all available pragmas can be found in the online documentation (\cite{xilinx:online_docs}) under \texttt{Vitis HLS > Vitis HLS Command Reference > HLS Pragmas}.
+  \item The compiler generates a tree of computations out of the C++ code, which is used to generate the VHDL / Verilog code. The length of the tree determines the run time of the calculation in a clock cycle. If the tree is too big, the calculations take too long and a timing violation is issued after synthesis. In this case the tree has to be splitted or the clock frequency decreased.
   \item To decrease code tree size it is useful to analyze dependencies and break them. For example, if a counter is used in a module, it should not be incremented and then used for calculations but rather the other way round. In the first case the second operation depends on the incrementation and both must be executed serially. The other way round there is no dependency and incrementation and the calculation can be run in parallel, which saves time.
   \item Synthesis will often complain, that timing is not met. If timing is not met by a small amount the hardware may still be working correctly. To check, whether this is the case run "Export RTL" with the option \texttt{Evaluate Generated RTL > Vivado synthesis, place and route}. If in the end "timing met" is printed, the timing of the logic is fine. In this project it happened more than once, that synthesis complained about timing, but it actually was good.
 \end{itemize}
@@ -115,6 +127,7 @@ Libraries ease the development of hardware modules. The following have been used
 
 \paragraph{Arbitrary Precision Data Types Library (ap\_int.h)}
 The most used library in the project. It enables the use of special data types of variable bit size. For example \texttt{ap\_uint<8>} is an 8-bit wide unsigned value or \texttt{ap\_int<256>} is a 256-bit wide signed value.
+
 The fine-grained control of the width of the values decreases waste of bits if normal data types would be used. For example \texttt{int} values would use 32 bits even if only small values would be stored in it.
 Those values can be used as bit sequences but also as real numbers. Arithmetic and bit operations are supported.
 
@@ -123,6 +136,7 @@ The HLS Stream library enables easier handling of sequential reads and writes by
 
 \paragraph{Shift Register Library (ap\_shift\_reg.h)}
 This library provides a shift register data type, which can be used to implement a shift register more easily. It provides member functions to push to the shift register or push to and read from the shift register simultaneously.
+
 This library has been abandoned in this project since the performance was worse than implementing custom logic.
 
 \subsubsection{AXI4-Stream}
@@ -136,3 +150,4 @@ AXI4-Stream is an industry-standard hand-shaking interface used to transmit data
 \end{itemize}
 
 There are a couple of ports more, but they are optional and not important / used in this project.
+AXI streams are mostly used for inter-module communication. For example on mixed platforms with an FPGA chip and a microprocessor this AXI stream interface is used as interface between the two blocks. In this project, this interface has been used as output from the ethernet input handler and as input for the ethernet output handler. This way, both handlers can be easily connected via the AXI stream interface to enable a simple echo server.

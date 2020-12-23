@@ -19,3 +19,4 @@ ip
 *.bbl
 *.blg
 *.pdf
+/**/_minted*/*
