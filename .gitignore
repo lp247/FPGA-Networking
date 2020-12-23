@@ -5,3 +5,5 @@
 *.tsm
 .vscode
 ip
+
+/**/target
